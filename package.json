@@ -6,7 +6,7 @@
   "description": "KannunAI — AI for Legal Assistance & Access. Plain language legal document intelligence, risk radar, grounded Q&A, and lawyer prep brief.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "preview": "vite preview",

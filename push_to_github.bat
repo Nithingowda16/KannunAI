@@ -1,11 +1,12 @@
 @echo off
 echo ============================================================
-echo Pushing 100% Zero-Error Local RAG Architecture to GitHub...
+echo Untracking node_modules & pushing clean build config...
 echo ============================================================
-git rm -f render.yaml 2>nul
+git rm -r --cached node_modules 2>nul
+git rm -r --cached dist 2>nul
 git add .
-git commit -m "docs(readme): update README for PromptWars alignment and accurate local architecture"
+git commit -m "fix(deploy): untrack node_modules and use vite build for Netlify"
 git push origin main
 echo ============================================================
-echo Push Complete! Check https://github.com/Nithingowda16/KannunAI
+echo Push Complete! Check Netlify deploy
 echo ============================================================
