@@ -19,7 +19,6 @@ export async function runE2EUserJourneyTests(): Promise<{ passed: number; failed
   }
 
   try {
-    // Step 1: Upload & Validate Document
     const sampleContent = `
 EMPLOYMENT AGREEMENT
 
@@ -46,11 +45,11 @@ This Agreement shall be governed by the laws of the State of California.
     const validation = validateLegalDocumentFile(mockFile);
     assert(validation.isValid, 'Step 1: Upload & File Validation passes');
 
-    // Step 2: Extract & Chunk Text
     const extraction = await extractTextFromFile(mockFile);
     const mockDoc: UploadedDocument = {
       id: 'doc_e2e_test_123',
       name: validation.sanitizedFilename || 'sample_employment_agreement.txt',
+      filename: validation.sanitizedFilename || 'sample_employment_agreement.txt',
       sizeFormatted: validation.fileSizeFormatted || '2 KB',
       uploadedAt: new Date().toLocaleTimeString(),
       rawText: extraction.text,
@@ -58,7 +57,6 @@ This Agreement shall be governed by the laws of the State of California.
     };
     assert(mockDoc.chunks.length > 0, 'Step 2: Document text extraction & semantic chunking succeeds');
 
-    // Step 3: Document Analysis & Plain-Language Summary
     const aiProvider = new MockAIProvider();
     const analysis = await aiProvider.analyzeDocument(mockDoc);
     assert(
@@ -66,28 +64,25 @@ This Agreement shall be governed by the laws of the State of California.
       'Step 3: Plain-language summary establishes document type & parties'
     );
 
-    // Step 4: Risk Radar Categorization (Low, Medium, High)
     assert(analysis.risks.length > 0, 'Step 4: Risk Radar identifies potential concern areas');
 
-    // Step 5: Grounded Q&A with Citation Retrieval
     const qaResult = await aiProvider.answerQuestion(mockDoc, 'What is the non compete period?', []);
     assert(
       qaResult.groundingStatus === 'Grounded' && qaResult.citations.length > 0,
       'Step 5: Grounded Q&A returns citation-backed answer'
     );
 
-    // Step 6: Pre-Signing Checklist Generation
     assert(analysis.checklist.length > 0, 'Step 6: Actionable pre-signing checklist generated');
 
-    // Step 7: Lawyer Preparation Brief Generation
     assert(
-      analysis.lawyerBrief.keyObligations.length > 0 && analysis.lawyerBrief.recommendedQuestions.length > 0,
+      analysis.lawyerBrief.keyObligations.length > 0 && (analysis.lawyerBrief.recommendedQuestions?.length || 0) > 0,
       'Step 7: Structured Lawyer Preparation Brief generated successfully'
     );
 
-  } catch (err: any) {
+  } catch (error: unknown) {
     failed++;
-    logs.push(`[FAIL] E2E User Journey Execution Error: ${err?.message || err}`);
+    const message = error instanceof Error ? error.message : 'E2E Execution Error';
+    logs.push(`[FAIL] E2E User Journey Execution Error: ${message}`);
   }
 
   return { passed, failed, logs };

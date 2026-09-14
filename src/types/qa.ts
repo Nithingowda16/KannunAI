@@ -1,11 +1,13 @@
 export interface Citation {
-  id: string;
+  id?: string;
+  chunkId?: string;
   sectionTitle?: string;
+  sectionHeader?: string;
   pageNumber: number;
   snippet: string;
-  startChar: number;
-  endChar: number;
-  confidenceScore: number;
+  startChar?: number;
+  endChar?: number;
+  confidenceScore?: number;
 }
 
 export interface QAPair {
@@ -15,5 +17,12 @@ export interface QAPair {
   citations: Citation[];
   groundingStatus: 'Grounded' | 'Partial' | 'Not Found';
   timestamp: string;
-  isCustom: boolean;
+  isCustom?: boolean;
+}
+
+export interface QuestionAnswerResponse {
+  answer: string;
+  groundingStatus: 'Grounded' | 'Partial' | 'Not Found';
+  citations: Citation[];
+  timestamp: string;
 }

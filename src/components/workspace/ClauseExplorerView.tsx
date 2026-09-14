@@ -14,11 +14,15 @@ export const ClauseExplorerView: React.FC<ClauseExplorerViewProps> = ({ clauses,
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const filteredClauses = clauses.filter((clause) => {
+    const title = clause.title || clause.category;
+    const plain = clause.plainLanguage || clause.plainLanguageExplanation || '';
+    const orig = clause.originalText || clause.originalTextSnippet || '';
+
     const matchesCategory = selectedCategory === 'all' || clause.category === selectedCategory;
     const matchesSearch =
-      clause.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      clause.plainLanguage.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      clause.originalText.toLowerCase().includes(searchQuery.toLowerCase());
+      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      plain.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      orig.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -72,63 +76,72 @@ export const ClauseExplorerView: React.FC<ClauseExplorerViewProps> = ({ clauses,
             No clauses match the selected category or search term.
           </div>
         ) : (
-          filteredClauses.map((clause) => (
-            <Card key={clause.id} className="space-y-4 border-l-4 border-l-[var(--apple-blue)] rounded-2xl">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-base font-bold text-[var(--text-primary)]">{clause.title}</h4>
-                  <Badge variant="slate">{clause.category.replace(/_/g, ' ')}</Badge>
+          filteredClauses.map((clause) => {
+            const title = clause.title || clause.category.toUpperCase();
+            const orig = clause.originalText || clause.originalTextSnippet || 'Original text snippet not available.';
+            const plain = clause.plainLanguage || clause.plainLanguageExplanation || 'Plain language explanation unavailable.';
+            const why = clause.whyItMatters || 'Governs contractual rights and liabilities.';
+            const concern = clause.potentialConcern || 'Standard provision.';
+            const pageNum = clause.sourceLocation?.pageNumber || 1;
+            const startC = clause.sourceLocation?.startChar || 0;
+            const endC = clause.sourceLocation?.endChar || 200;
+
+            return (
+              <Card key={clause.id} className="space-y-4 border-l-4 border-l-[var(--apple-blue)] rounded-2xl">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-base font-bold text-[var(--text-primary)]">{title}</h4>
+                    <Badge variant="slate">{clause.category.replace(/_/g, ' ')}</Badge>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs">
+                    <Badge variant={clause.status === 'Requires Review' ? 'medium' : 'low'}>
+                      {clause.status || 'Detected'}
+                    </Badge>
+
+                    <button
+                      onClick={() =>
+                        onSelectCitation({
+                          startChar: startC,
+                          endChar: endC,
+                          pageNumber: pageNum
+                        })
+                      }
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--apple-blue-bg)] text-[var(--apple-blue-text)] border border-[var(--apple-blue-border)] hover:bg-[var(--bg-tertiary)] transition-colors font-medium text-xs"
+                      title="Jump to source text snippet"
+                    >
+                      <span>Page {pageNum}</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs">
-                  <Badge variant={clause.status === 'Requires Review' ? 'medium' : 'low'}>
-                    {clause.status}
-                  </Badge>
-
-                  <button
-                    onClick={() =>
-                      onSelectCitation({
-                        startChar: clause.sourceLocation.startChar,
-                        endChar: clause.sourceLocation.endChar,
-                        pageNumber: clause.sourceLocation.pageNumber
-                      })
-                    }
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--apple-blue-bg)] text-[var(--apple-blue-text)] border border-[var(--apple-blue-border)] hover:bg-[var(--bg-tertiary)] transition-colors font-medium text-xs"
-                    title="Jump to source text snippet"
-                  >
-                    <span>Page {clause.sourceLocation.pageNumber}</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Original Text Box */}
-              <div className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-panel)] text-xs font-mono text-[var(--text-primary)] leading-relaxed max-h-32 overflow-y-auto">
-                <span className="text-[10px] text-[var(--text-secondary)] font-sans block mb-1 uppercase tracking-wider font-semibold">
-                  Original Legal Text:
-                </span>
-                "{clause.originalText}"
-              </div>
-
-              {/* Explanations & Concern */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-subtle)]">
-                  <span className="font-bold text-[var(--apple-blue-text)] block mb-1">Plain Language:</span>
-                  <p className="text-[var(--text-primary)] leading-relaxed">{clause.plainLanguage}</p>
+                <div className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-panel)] text-xs font-mono text-[var(--text-primary)] leading-relaxed max-h-32 overflow-y-auto">
+                  <span className="text-[10px] text-[var(--text-secondary)] font-sans block mb-1 uppercase tracking-wider font-semibold">
+                    Original Legal Text:
+                  </span>
+                  "{orig}"
                 </div>
 
-                <div className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-subtle)]">
-                  <span className="font-bold text-[var(--apple-emerald-text)] block mb-1">Why It Matters:</span>
-                  <p className="text-[var(--text-primary)] leading-relaxed">{clause.whyItMatters}</p>
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-subtle)]">
+                    <span className="font-bold text-[var(--apple-blue-text)] block mb-1">Plain Language:</span>
+                    <p className="text-[var(--text-primary)] leading-relaxed">{plain}</p>
+                  </div>
 
-                <div className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-subtle)]">
-                  <span className="font-bold text-[var(--apple-amber-text)] block mb-1">Potential Concern:</span>
-                  <p className="text-[var(--text-primary)] leading-relaxed">{clause.potentialConcern}</p>
+                  <div className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-subtle)]">
+                    <span className="font-bold text-[var(--apple-emerald-text)] block mb-1">Why It Matters:</span>
+                    <p className="text-[var(--text-primary)] leading-relaxed">{why}</p>
+                  </div>
+
+                  <div className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-subtle)]">
+                    <span className="font-bold text-[var(--apple-amber-text)] block mb-1">Potential Concern:</span>
+                    <p className="text-[var(--text-primary)] leading-relaxed">{concern}</p>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))
+              </Card>
+            );
+          })
         )}
       </div>
     </div>

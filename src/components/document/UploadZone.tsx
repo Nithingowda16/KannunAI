@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, RefreshCw, ShieldCheck, FileText, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
+import { Upload, RefreshCw, FileText, ArrowRight, Lock } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Progress } from '../ui/Progress';
 import { Alert } from '../ui/Alert';

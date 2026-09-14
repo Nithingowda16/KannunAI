@@ -1,14 +1,16 @@
 export interface UploadedDocument {
   id: string;
-  filename: string;
-  fileSize: number;
-  mimeType: string;
-  uploadedAt: Date;
+  name: string;
+  filename?: string;
+  fileSize?: number;
+  sizeFormatted?: string;
+  mimeType?: string;
+  uploadedAt: string;
   rawText: string;
-  pageCount: number;
-  wordCount: number;
+  pageCount?: number;
+  wordCount?: number;
   chunks: DocumentChunk[];
-  hash: string;
+  hash?: string;
 }
 
 export interface DocumentChunk {

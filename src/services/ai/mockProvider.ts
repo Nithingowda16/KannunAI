@@ -10,10 +10,10 @@ import { LawyerBrief } from '../../types/lawyerBrief';
 import { InMemoryVectorStore } from '../document/vectorStore';
 
 export class MockAIProvider implements AIProvider {
-  name = 'KannunAI Local Deterministic Engine (Offline/Mock)';
+  name = 'KannunAI Local Deterministic Legal Analysis Engine';
 
   async analyzeDocument(doc: UploadedDocument): Promise<DocumentAnalysis> {
-    // 1. Detect Clauses across 18+ categories
+    // 1. Detect Clauses across categories
     const clauses = extractLegalClausesFromText(doc);
 
     // 2. Detect Risks
@@ -28,10 +28,15 @@ export class MockAIProvider implements AIProvider {
     // 5. Generate Lawyer Prep Brief
     const lawyerBrief = generateLawyerBrief(doc, summary, clauses, risks);
 
+    const highRiskCount = risks.filter((r) => r.level === 'high' || r.level === 'critical').length;
+    const mediumRiskCount = risks.filter((r) => r.level === 'medium').length;
+    const overallRiskScore = Math.min(100, highRiskCount * 25 + mediumRiskCount * 10 + 15);
+
     return {
       id: `analysis_${doc.id}`,
       documentId: doc.id,
       analyzedAt: new Date().toISOString(),
+      overallRiskScore,
       summary,
       clauses,
       risks,
@@ -54,14 +59,14 @@ export class MockAIProvider implements AIProvider {
     question: string,
     _history: QAPair[]
   ): Promise<QAPair> {
-    const vectorStore = new InMemoryVectorStore(doc.chunks);
+    const vectorStore = new InMemoryVectorStore(doc.chunks || []);
     const searchResults = vectorStore.search(question, 3);
 
-    if (searchResults.length === 0 || searchResults[0].score < 0.2) {
+    if (searchResults.length === 0 || searchResults[0].score < 0.1) {
       return {
         id: `qa_${Date.now()}`,
         question,
-        answer: "I couldn't find enough information in the provided document to answer that reliably.",
+        answer: 'Not established in this document.',
         citations: [],
         groundingStatus: 'Not Found',
         timestamp: new Date().toLocaleTimeString(),
@@ -74,7 +79,9 @@ export class MockAIProvider implements AIProvider {
 
     const citation: Citation = {
       id: `cit_${Date.now()}`,
+      chunkId: topChunk.id,
       sectionTitle: topChunk.sectionHeader || `Page ${topChunk.pageNumber}`,
+      sectionHeader: topChunk.sectionHeader || `Section Page ${topChunk.pageNumber}`,
       pageNumber: topChunk.pageNumber,
       snippet: topChunk.text.substring(0, 180) + '...',
       startChar: topChunk.startChar,
@@ -99,11 +106,9 @@ export class MockAIProvider implements AIProvider {
   ): Promise<ComparisonResult> {
     const differences: DifferenceItem[] = [];
 
-    // Analyze Doc A & Doc B clauses
     const clausesA = extractLegalClausesFromText(docA);
     const clausesB = extractLegalClausesFromText(docB);
 
-    // Compare Auto Renewal
     const renewA = clausesA.find((c) => c.category === 'automatic_renewal');
     const renewB = clausesB.find((c) => c.category === 'automatic_renewal');
     if (renewA && !renewB) {
@@ -116,11 +121,10 @@ export class MockAIProvider implements AIProvider {
         whatChanged: 'Version B removes the automatic annual renewal requirement present in Version A.',
         whyItMayMatter: 'You will no longer be locked into automatic recurring fee commitments without re-signing.',
         severity: 'medium',
-        sourceLocationOld: { section: renewA.sourceLocation.section, pageNumber: renewA.sourceLocation.pageNumber }
+        sourceLocationOld: { section: renewA.sourceLocation?.section, pageNumber: renewA.sourceLocation?.pageNumber || 1 }
       });
     }
 
-    // Compare Notice Periods
     const noticeA = clausesA.find((c) => c.category === 'notice_periods' || c.category === 'termination');
     const noticeB = clausesB.find((c) => c.category === 'notice_periods' || c.category === 'termination');
     if (noticeA && noticeB && noticeA.originalText !== noticeB.originalText) {
@@ -134,12 +138,11 @@ export class MockAIProvider implements AIProvider {
         whatChanged: 'The required written notice period for cancellation changed between versions.',
         whyItMayMatter: 'Failing to provide timely notice under the updated timeframe could prevent valid agreement termination.',
         severity: 'high',
-        sourceLocationOld: { section: noticeA.sourceLocation.section, pageNumber: noticeA.sourceLocation.pageNumber },
-        sourceLocationNew: { section: noticeB.sourceLocation.section, pageNumber: noticeB.sourceLocation.pageNumber }
+        sourceLocationOld: { section: noticeA.sourceLocation?.section, pageNumber: noticeA.sourceLocation?.pageNumber || 1 },
+        sourceLocationNew: { section: noticeB.sourceLocation?.section, pageNumber: noticeB.sourceLocation?.pageNumber || 1 }
       });
     }
 
-    // Compare IP
     const ipA = clausesA.find((c) => c.category === 'intellectual_property');
     const ipB = clausesB.find((c) => c.category === 'intellectual_property');
     if (!ipA && ipB) {
@@ -150,13 +153,12 @@ export class MockAIProvider implements AIProvider {
         title: 'New Intellectual Property Assignment Added in Version B',
         newText: ipB.originalText,
         whatChanged: 'Version B adds a explicit clause assigning all work product IP exclusively to the hiring entity.',
-        whyItMayMatter: 'Ensures clarify on IP ownership, but limits your rights to reuse work materials.',
+        whyItMayMatter: 'Ensures clarity on IP ownership, but limits your rights to reuse work materials.',
         severity: 'high',
-        sourceLocationNew: { section: ipB.sourceLocation.section, pageNumber: ipB.sourceLocation.pageNumber }
+        sourceLocationNew: { section: ipB.sourceLocation?.section, pageNumber: ipB.sourceLocation?.pageNumber || 1 }
       });
     }
 
-    // Default general diff if few specific matched
     if (differences.length === 0) {
       differences.push({
         id: 'diff_gen',
@@ -171,14 +173,17 @@ export class MockAIProvider implements AIProvider {
       });
     }
 
+    const nameA = docA.name || docA.filename || 'Document A';
+    const nameB = docB.name || docB.filename || 'Document B';
+
     return {
       id: `comp_${Date.now()}`,
       docAId: docA.id,
       docBId: docB.id,
-      docAName: docA.filename,
-      docBName: docB.filename,
+      docAName: nameA,
+      docBName: nameB,
       comparedAt: new Date().toISOString(),
-      overallSummary: `Compared ${docA.filename} against ${docB.filename}. Detected ${differences.length} structural differences across termination, IP, and payment terms.`,
+      overallSummary: `Compared ${nameA} against ${nameB}. Detected ${differences.length} structural differences across termination, IP, and payment terms.`,
       differences,
       highRiskCount: differences.filter((d) => d.severity === 'high').length
     };
@@ -192,7 +197,6 @@ function extractLegalClausesFromText(doc: UploadedDocument): ClauseItem[] {
   const text = doc.rawText;
   const lower = text.toLowerCase();
 
-  // 1. Payment Clause
   if (lower.includes('payment') || lower.includes('compensation') || lower.includes('fee')) {
     const snippet = findMatchingParagraph(text, ['payment', 'compensation', 'fee', 'salary', 'invoice']);
     clauses.push({
@@ -200,16 +204,18 @@ function extractLegalClausesFromText(doc: UploadedDocument): ClauseItem[] {
       category: 'payment',
       title: 'Payment & Compensation Terms',
       originalText: snippet.text,
+      originalTextSnippet: snippet.text,
       plainLanguage: 'Outlines how much, when, and by what method payments will be disbursed or collected.',
+      plainLanguageExplanation: 'Outlines how much, when, and by what method payments will be disbursed or collected.',
       whyItMatters: 'Governs your cash flow, payment timelines, and consequences for overdue balances.',
       potentialConcern: lower.includes('penalty') || lower.includes('late fee') ? 'Includes late payment penalty provisions.' : 'Standard payment schedule.',
       sourceLocation: { pageNumber: snippet.page, section: 'Payment Terms', startChar: snippet.start, endChar: snippet.end },
       confidence: 'High',
+      confidenceScore: 0.95,
       status: 'Detected'
     });
   }
 
-  // 2. Termination Clause
   if (lower.includes('terminate') || lower.includes('cancellation') || lower.includes('notice')) {
     const snippet = findMatchingParagraph(text, ['terminate', 'cancellation', 'notice period', 'written notice']);
     clauses.push({
@@ -217,18 +223,20 @@ function extractLegalClausesFromText(doc: UploadedDocument): ClauseItem[] {
       category: 'termination',
       title: 'Termination & Notice Requirements',
       originalText: snippet.text,
+      originalTextSnippet: snippet.text,
       plainLanguage: 'Explains how either party can cancel or end the contract, and how much advance notice must be given.',
+      plainLanguageExplanation: 'Explains how either party can cancel or end the contract, and how much advance notice must be given.',
       whyItMatters: 'Determines how easily you can exit the relationship if conditions change.',
       potentialConcern: lower.includes('immediate termination') || lower.includes('without cause')
         ? 'Party may terminate immediately or without cause under certain conditions.'
         : 'Requires formal written notice prior to termination.',
       sourceLocation: { pageNumber: snippet.page, section: 'Termination Clause', startChar: snippet.start, endChar: snippet.end },
       confidence: 'High',
+      confidenceScore: 0.92,
       status: 'Requires Review'
     });
   }
 
-  // 3. Automatic Renewal Clause
   if (lower.includes('automatic renewal') || lower.includes('automatically renew') || lower.includes('successive terms')) {
     const snippet = findMatchingParagraph(text, ['automatic renewal', 'automatically renew', 'renew']);
     clauses.push({
@@ -236,16 +244,18 @@ function extractLegalClausesFromText(doc: UploadedDocument): ClauseItem[] {
       category: 'automatic_renewal',
       title: 'Automatic Renewal Provision',
       originalText: snippet.text,
+      originalTextSnippet: snippet.text,
       plainLanguage: 'The agreement automatically extends for additional term periods unless written opt-out notice is provided in advance.',
+      plainLanguageExplanation: 'The agreement automatically extends for additional term periods unless written opt-out notice is provided in advance.',
       whyItMatters: 'You could be locked into paying for another full term if you miss the cancellation notice window.',
       potentialConcern: 'Requires strict calendar reminder for cancellation notice deadline.',
       sourceLocation: { pageNumber: snippet.page, section: 'Renewal Terms', startChar: snippet.start, endChar: snippet.end },
       confidence: 'High',
+      confidenceScore: 0.9,
       status: 'Requires Review'
     });
   }
 
-  // 4. Confidentiality Clause
   if (lower.includes('confidential') || lower.includes('non-disclosure') || lower.includes('proprietary')) {
     const snippet = findMatchingParagraph(text, ['confidential', 'proprietary', 'trade secret']);
     clauses.push({
@@ -253,16 +263,18 @@ function extractLegalClausesFromText(doc: UploadedDocument): ClauseItem[] {
       category: 'confidentiality',
       title: 'Confidentiality & Non-Disclosure',
       originalText: snippet.text,
+      originalTextSnippet: snippet.text,
       plainLanguage: 'Requires keeping shared business information, technical secrets, and trade data strictly private.',
+      plainLanguageExplanation: 'Requires keeping shared business information, technical secrets, and trade data strictly private.',
       whyItMatters: 'Protects proprietary secrets but imposes legal liability if sensitive information is leaked.',
       potentialConcern: lower.includes('perpetual') ? 'Confidentiality obligations survive indefinitely.' : 'Standard non-disclosure obligations.',
       sourceLocation: { pageNumber: snippet.page, section: 'Confidentiality', startChar: snippet.start, endChar: snippet.end },
       confidence: 'High',
+      confidenceScore: 0.94,
       status: 'Detected'
     });
   }
 
-  // 5. Intellectual Property
   if (lower.includes('intellectual property') || lower.includes('work for hire') || lower.includes('copyright') || lower.includes('invention')) {
     const snippet = findMatchingParagraph(text, ['intellectual property', 'work for hire', 'copyright', 'ownership', 'assigns']);
     clauses.push({
@@ -270,16 +282,18 @@ function extractLegalClausesFromText(doc: UploadedDocument): ClauseItem[] {
       category: 'intellectual_property',
       title: 'Intellectual Property Ownership',
       originalText: snippet.text,
+      originalTextSnippet: snippet.text,
       plainLanguage: 'Specifies who owns inventions, designs, code, documents, or branding created during the engagement.',
+      plainLanguageExplanation: 'Specifies who owns inventions, designs, code, documents, or branding created during the engagement.',
       whyItMatters: 'Ensures clarity over product rights and prevents future ownership disputes.',
       potentialConcern: 'Assigns all created work product exclusively to the hiring entity.',
       sourceLocation: { pageNumber: snippet.page, section: 'IP Rights', startChar: snippet.start, endChar: snippet.end },
       confidence: 'High',
+      confidenceScore: 0.96,
       status: 'Detected'
     });
   }
 
-  // 6. Liability Limitation
   if (lower.includes('limitation of liability') || lower.includes('indemnify') || lower.includes('hold harmless')) {
     const snippet = findMatchingParagraph(text, ['liability', 'indemnify', 'hold harmless', 'damages']);
     clauses.push({
@@ -287,16 +301,18 @@ function extractLegalClausesFromText(doc: UploadedDocument): ClauseItem[] {
       category: 'liability',
       title: 'Limitation of Liability & Indemnification',
       originalText: snippet.text,
+      originalTextSnippet: snippet.text,
       plainLanguage: 'Caps financial damages either party can claim and defines who pays for legal expenses if sued by a third party.',
+      plainLanguageExplanation: 'Caps financial damages either party can claim and defines who pays for legal expenses if sued by a third party.',
       whyItMatters: 'Controls maximum legal and financial exposure in case of disputes or performance failures.',
       potentialConcern: lower.includes('uncapped') || lower.includes('sole liability') ? 'Indemnification obligations may be uncapped.' : 'Standard liability limits.',
       sourceLocation: { pageNumber: snippet.page, section: 'Liability & Indemnity', startChar: snippet.start, endChar: snippet.end },
       confidence: 'High',
+      confidenceScore: 0.91,
       status: 'Requires Review'
     });
   }
 
-  // 7. Non-Compete / Non-Solicitation
   if (lower.includes('non-compete') || lower.includes('solicit') || lower.includes('restrictive covenant')) {
     const snippet = findMatchingParagraph(text, ['non-compete', 'solicit', 'compete', 'restrictive']);
     clauses.push({
@@ -304,27 +320,32 @@ function extractLegalClausesFromText(doc: UploadedDocument): ClauseItem[] {
       category: 'non_compete',
       title: 'Non-Compete & Non-Solicitation Restriction',
       originalText: snippet.text,
+      originalTextSnippet: snippet.text,
       plainLanguage: 'Restricts working for competing businesses or recruiting clients/employees for a period after leaving.',
+      plainLanguageExplanation: 'Restricts working for competing businesses or recruiting clients/employees for a period after leaving.',
       whyItMatters: 'Directly impacts your future career, job options, and business operations post-termination.',
       potentialConcern: 'Restricts post-contract employment in specified geographic regions or industries.',
       sourceLocation: { pageNumber: snippet.page, section: 'Restrictive Covenants', startChar: snippet.start, endChar: snippet.end },
       confidence: 'High',
+      confidenceScore: 0.93,
       status: 'Requires Review'
     });
   }
 
-  // Fallback if no specific clauses detected
   if (clauses.length === 0) {
     clauses.push({
       id: 'c_gen',
       category: 'general',
       title: 'General Agreement Terms',
       originalText: doc.rawText.substring(0, 300) + '...',
+      originalTextSnippet: doc.rawText.substring(0, 300) + '...',
       plainLanguage: 'Standard general contract agreement provisions.',
+      plainLanguageExplanation: 'Standard general contract agreement provisions.',
       whyItMatters: 'Establishes basic rights and legal relationships.',
       potentialConcern: 'Requires full review of custom provisions.',
       sourceLocation: { pageNumber: 1, section: 'General', startChar: 0, endChar: 300 },
       confidence: 'Medium',
+      confidenceScore: 0.75,
       status: 'Standard'
     });
   }
@@ -340,12 +361,15 @@ function evaluateRisksFromClauses(clauses: ClauseItem[], doc: UploadedDocument):
       risks.push({
         id: 'risk_auto_renew',
         title: 'Automatic Renewal Notice Window Risk',
+        level: 'high',
         severity: 'high',
         category: 'Termination & Fees',
         explanation: 'Agreement automatically renews for successive terms unless written notice is given within the specified window.',
-        evidenceText: clause.originalText,
-        sourceLocation: { pageNumber: clause.sourceLocation.pageNumber, section: clause.sourceLocation.section },
+        evidenceSnippet: clause.originalTextSnippet || clause.originalText,
+        evidenceText: clause.originalTextSnippet || clause.originalText,
+        sourceLocation: { pageNumber: clause.sourceLocation?.pageNumber || 1, section: clause.sourceLocation?.section },
         reasonForFlagging: 'Potential recurring financial obligation if cancellation notice deadline is missed.',
+        suggestedQuestion: 'What is the exact deadline for sending cancellation notice, and via what communication channel?',
         suggestedAction: 'Consider asking: What is the exact deadline for sending cancellation notice, and via what communication channel?'
       });
     }
@@ -354,56 +378,67 @@ function evaluateRisksFromClauses(clauses: ClauseItem[], doc: UploadedDocument):
       risks.push({
         id: 'risk_non_compete',
         title: 'Post-Contract Restrictive Covenant',
+        level: 'high',
         severity: 'high',
         category: 'Career & Competition',
         explanation: 'Restricts performing similar work or soliciting clients for a specified period after contract end.',
-        evidenceText: clause.originalText,
-        sourceLocation: { pageNumber: clause.sourceLocation.pageNumber, section: clause.sourceLocation.section },
+        evidenceSnippet: clause.originalTextSnippet || clause.originalText,
+        evidenceText: clause.originalTextSnippet || clause.originalText,
+        sourceLocation: { pageNumber: clause.sourceLocation?.pageNumber || 1, section: clause.sourceLocation?.section },
         reasonForFlagging: 'May limit future employment or business options after termination.',
+        suggestedQuestion: 'Can the non-compete duration or geographic scope be narrowed?',
         suggestedAction: 'Consider asking: Can the non-compete duration or geographic scope be narrowed?'
       });
     }
 
-    if (clause.category === 'liability' && clause.potentialConcern.includes('uncapped')) {
+    if (clause.category === 'liability' && (clause.potentialConcern?.includes('uncapped') || clause.potentialConcern?.includes('sole'))) {
       risks.push({
         id: 'risk_liability',
         title: 'Broad Uncapped Indemnification Burden',
+        level: 'high',
         severity: 'high',
         category: 'Financial Exposure',
         explanation: 'Indemnification clause may expose you to third-party legal costs without a clear liability cap.',
-        evidenceText: clause.originalText,
-        sourceLocation: { pageNumber: clause.sourceLocation.pageNumber, section: clause.sourceLocation.section },
+        evidenceSnippet: clause.originalTextSnippet || clause.originalText,
+        evidenceText: clause.originalTextSnippet || clause.originalText,
+        sourceLocation: { pageNumber: clause.sourceLocation?.pageNumber || 1, section: clause.sourceLocation?.section },
         reasonForFlagging: 'Uncapped financial liability in legal proceedings.',
+        suggestedQuestion: 'Can we insert a mutual liability cap tied to total contract fees paid?',
         suggestedAction: 'Consider asking: Can we insert a mutual liability cap tied to total contract fees paid?'
       });
     }
 
-    if (clause.category === 'termination' && clause.potentialConcern.includes('immediate')) {
+    if (clause.category === 'termination' && clause.potentialConcern?.includes('immediate')) {
       risks.push({
         id: 'risk_term_immediate',
         title: 'Immediate Termination Rights',
+        level: 'medium',
         severity: 'medium',
         category: 'Contract Duration',
         explanation: 'Allows termination without extended notice period under specific circumstances.',
-        evidenceText: clause.originalText,
-        sourceLocation: { pageNumber: clause.sourceLocation.pageNumber, section: clause.sourceLocation.section },
+        evidenceSnippet: clause.originalTextSnippet || clause.originalText,
+        evidenceText: clause.originalTextSnippet || clause.originalText,
+        sourceLocation: { pageNumber: clause.sourceLocation?.pageNumber || 1, section: clause.sourceLocation?.section },
         reasonForFlagging: 'Contract could end suddenly with limited transition time.',
+        suggestedQuestion: 'What notice period is required for convenience vs default?',
         suggestedAction: 'Consider asking: What notice period is required for convenience vs default?'
       });
     }
   }
 
-  // If no high risks, add standard medium/low risk
   if (risks.length === 0) {
     risks.push({
       id: 'risk_std',
       title: 'Standard Legal Review Recommendation',
+      level: 'low',
       severity: 'low',
       category: 'General Governance',
       explanation: 'No high-attention unusual clauses detected in standard pattern scans.',
+      evidenceSnippet: doc.rawText.substring(0, 200),
       evidenceText: doc.rawText.substring(0, 200),
       sourceLocation: { pageNumber: 1, section: 'Overview' },
       reasonForFlagging: 'Routine verification recommended before final signature.',
+      suggestedQuestion: 'Consider reviewing payment due dates and dispute resolution venue.',
       suggestedAction: 'Consider reviewing payment due dates and dispute resolution venue.'
     });
   }
@@ -425,73 +460,83 @@ function generatePlainSummary(doc: UploadedDocument, clauses: ClauseItem[], risk
   const effectiveDate = extractEffectiveDate(doc.rawText);
   const duration = extractDuration(doc.rawText);
 
-  const keyObligations = clauses.map((c) => c.title);
+  const keyObligations = clauses.map((c) => c.title || c.category);
   const keyDeadlines = clauses
     .filter((c) => c.category === 'notice_periods' || c.category === 'payment' || c.category === 'automatic_renewal')
-    .map((c) => `${c.title}: ${c.potentialConcern}`);
+    .map((c) => `${c.title || c.category}: ${c.potentialConcern || 'Deadline rule'}`);
 
-  const notableRisks = risks.map((r) => `${r.title} (${r.severity.toUpperCase()} ATTENTION)`);
+  const notableRisks = risks.map((r) => `${r.title} (${r.level.toUpperCase()} ATTENTION)`);
 
   const missingInformation: string[] = [];
-  if (effectiveDate === 'Not found in the provided document.') missingInformation.push('Explicit effective start date');
-  if (duration === 'Not found in the provided document.') missingInformation.push('Defined contract duration or expiration date');
+  if (effectiveDate === 'Not established in this document.') missingInformation.push('Explicit effective start date');
+  if (duration === 'Not established in this document.') missingInformation.push('Defined contract duration or expiration date');
 
   return {
-    quickSummary: `This ${docType} outlines contractual obligations between the participating parties. Key terms include ${clauses.slice(0, 3).map((c) => c.title.toLowerCase()).join(', ')}. ${risks.length} key attention areas were flagged for review.`,
+    quickSummary: `This ${docType} outlines contractual obligations between the participating parties. Key terms include ${clauses.slice(0, 3).map((c) => (c.title || c.category).toLowerCase()).join(', ')}. ${risks.length} key attention areas were flagged for review.`,
     detailedSummary: `This document appears to be a ${docType}. It establishes binding terms governing rights, obligations, dispute resolution, and operational scope. Users should carefully review flagged provisions regarding ${risks.map((r) => r.title).join(' and ')}.`,
     documentType: docType,
     apparentPurpose: `To establish formal legal relationship and operational parameters for ${docType.toLowerCase()}.`,
-    partiesInvolved: parties.length > 0 ? parties : ['Not found in the provided document.'],
+    partiesInvolved: parties.length > 0 ? parties : ['Not established in this document.'],
     effectiveDate,
     duration,
-    terminationSummary: clauses.find((c) => c.category === 'termination')?.plainLanguage || 'Not found in the provided document.',
+    terminationSummary: clauses.find((c) => c.category === 'termination')?.plainLanguage || 'Not established in this document.',
     keyObligations,
-    keyDeadlines: keyDeadlines.length > 0 ? keyDeadlines : ['Not found in the provided document.'],
+    importantDeadlines: keyDeadlines.length > 0 ? keyDeadlines : ['Not established in this document.'],
+    keyDeadlines: keyDeadlines.length > 0 ? keyDeadlines : ['Not established in this document.'],
     notableRisks,
+    unestablishedInformation: missingInformation.length > 0 ? missingInformation : ['None explicitly identified missing.'],
     missingInformation: missingInformation.length > 0 ? missingInformation : ['None explicitly identified missing.']
   };
 }
 
 function generateChecklistItems(_clauses: ClauseItem[], _risks: RiskItem[]): ChecklistItem[] {
-  const items: ChecklistItem[] = [
+  return [
     {
       id: 'chk_1',
       category: 'Financial',
+      itemText: 'Confirm Payment Schedule & Fee Amounts',
       label: 'Confirm Payment Schedule & Fee Amounts',
       description: 'Verify payment terms, due dates, invoicing schedules, and potential late fee penalties.',
-      isCompleted: false
+      importance: 'high',
+      isChecked: false
     },
     {
       id: 'chk_2',
       category: 'Termination',
+      itemText: 'Review Cancellation Notice Deadline',
       label: 'Review Cancellation Notice Deadline',
       description: 'Check required advance notice days needed to terminate before automatic renewal.',
-      isCompleted: false
+      importance: 'critical',
+      isChecked: false
     },
     {
       id: 'chk_3',
       category: 'IP',
+      itemText: 'Verify Intellectual Property Ownership Rights',
       label: 'Verify Intellectual Property Ownership Rights',
       description: 'Ensure clear assignment or retention of created inventions, code, or materials.',
-      isCompleted: false
+      importance: 'high',
+      isChecked: false
     },
     {
       id: 'chk_4',
       category: 'Liability',
+      itemText: 'Check Liability Cap Limitations',
       label: 'Check Liability Cap Limitations',
       description: 'Confirm maximum financial liability and mutual indemnification scope.',
-      isCompleted: false
+      importance: 'high',
+      isChecked: false
     },
     {
       id: 'chk_5',
       category: 'General',
+      itemText: 'Discuss Flagged Concerns with Legal Counsel',
       label: 'Discuss Flagged Concerns with Legal Counsel',
       description: 'Prepare specific questions regarding high-attention risk provisions.',
-      isCompleted: false
+      importance: 'medium',
+      isChecked: false
     }
   ];
-
-  return items;
 }
 
 function generateLawyerBrief(
@@ -500,19 +545,26 @@ function generateLawyerBrief(
   _clauses: ClauseItem[],
   risks: RiskItem[]
 ): LawyerBrief {
+  const docTitle = doc.name || doc.filename || 'Legal Document';
   return {
     id: `brief_${doc.id}`,
-    documentTitle: doc.filename,
+    documentTitle: docTitle,
     generatedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+    executiveSummary: summary.quickSummary,
     overview: summary.quickSummary,
     keyObligations: summary.keyObligations,
     importantDates: summary.keyDeadlines,
+    criticalRiskFactors: risks.map((r) => r.title),
     potentialConcerns: risks.map((r) => ({
       title: r.title,
       description: r.explanation,
-      section: r.sourceLocation.section
+      section: r.sourceLocation?.section
     })),
-    unclearAreas: summary.missingInformation,
+    unclearAreas: summary.unestablishedInformation,
+    recommendedNextSteps: [
+      'Conduct formal legal review of liability limitations.',
+      'Clarify notice periods for termination.'
+    ],
     recommendedQuestions: [
       'What happens if notice of termination is sent 5 days past the deadline?',
       'Can the liability cap be amended to match total annual fees paid?',
@@ -569,7 +621,7 @@ function extractParties(text: string): string[] {
   if (match) {
     return [match[1].trim(), match[2].trim()];
   }
-  return ['Not found in the provided document.'];
+  return ['Not established in this document.'];
 }
 
 function extractEffectiveDate(text: string): string {
@@ -577,7 +629,7 @@ function extractEffectiveDate(text: string): string {
   if (match) {
     return match[2];
   }
-  return 'Not found in the provided document.';
+  return 'Not established in this document.';
 }
 
 function extractDuration(text: string): string {
@@ -585,7 +637,7 @@ function extractDuration(text: string): string {
   if (match) {
     return match[0];
   }
-  return 'Not found in the provided document.';
+  return 'Not established in this document.';
 }
 
 function extractGoverningLaw(text: string): string {
@@ -593,5 +645,5 @@ function extractGoverningLaw(text: string): string {
   if (match) {
     return match[2].split('.')[0].trim();
   }
-  return 'Not found in the provided document.';
+  return 'Not established in this document.';
 }

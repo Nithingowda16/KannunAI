@@ -9,7 +9,7 @@ import { Badge } from '../ui/Badge';
 
 export interface GroundedQAViewProps {
   document: UploadedDocument;
-  onSelectCitation: (range: { startChar: number; endChar: number; pageNumber: number }) => void;
+  onSelectCitation: (range: { startChar: number; endChar: number; pageNumber?: number }) => void;
 }
 
 const PRESET_QUESTIONS = [
@@ -151,8 +151,8 @@ export const GroundedQAView: React.FC<GroundedQAViewProps> = ({ document, onSele
                         <button
                           onClick={() =>
                             onSelectCitation({
-                              startChar: cit.startChar,
-                              endChar: cit.endChar,
+                              startChar: cit.startChar || 0,
+                              endChar: cit.endChar || 200,
                               pageNumber: cit.pageNumber
                             })
                           }

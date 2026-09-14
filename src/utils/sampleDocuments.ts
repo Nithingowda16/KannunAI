@@ -90,10 +90,12 @@ export function getSampleDocument(type: 'employment' | 'saas_v1' | 'saas_v2'): U
 
   return {
     id: docId,
+    name: filename,
     filename,
     fileSize: text.length,
+    sizeFormatted: `${(text.length / 1024).toFixed(1)} KB`,
     mimeType: 'text/plain',
-    uploadedAt: new Date(),
+    uploadedAt: new Date().toISOString(),
     rawText: text,
     pageCount,
     wordCount: text.split(/\s+/).length,

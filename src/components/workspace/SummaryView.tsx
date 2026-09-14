@@ -12,6 +12,11 @@ export interface SummaryViewProps {
 export const SummaryView: React.FC<SummaryViewProps> = ({ summary }) => {
   const [summaryMode, setSummaryMode] = useState<'quick' | 'detailed'>('quick');
 
+  const quickNarrative = summary.quickSummary || summary.detailedSummary || `Summary of ${summary.documentType}.`;
+  const detailedNarrative = summary.detailedSummary || summary.quickSummary || `Detailed analysis of ${summary.documentType}.`;
+  const deadlines = summary.keyDeadlines || summary.importantDeadlines || [];
+  const missingInfo = summary.missingInformation || summary.unestablishedInformation || [];
+
   return (
     <div className="space-y-6">
       {/* Overview Header & Toggle */}
@@ -46,7 +51,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ summary }) => {
       <Card className="space-y-3 bg-[var(--apple-blue-bg)] border-[var(--apple-blue-border)]">
         <h4 className="text-sm font-bold text-[var(--apple-blue-text)]">Overview Narrative</h4>
         <p className="text-sm text-[var(--text-primary)] leading-relaxed">
-          {summaryMode === 'quick' ? summary.quickSummary : summary.detailedSummary}
+          {summaryMode === 'quick' ? quickNarrative : detailedNarrative}
         </p>
       </Card>
 
@@ -64,7 +69,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ summary }) => {
             <Users className="h-4 w-4 text-[var(--apple-purple-text)]" /> Parties Involved
           </div>
           <p className="text-sm font-bold text-[var(--text-primary)] truncate">
-            {summary.partiesInvolved.join(', ')}
+            {(summary.partiesInvolved || []).join(', ')}
           </p>
         </Card>
 
@@ -72,7 +77,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ summary }) => {
           <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-secondary)]">
             <Calendar className="h-4 w-4 text-[var(--apple-emerald-text)]" /> Effective Date
           </div>
-          <p className={`text-sm font-bold ${summary.effectiveDate.includes('Not found') ? 'text-[var(--apple-amber-text)] font-normal italic' : 'text-[var(--text-primary)]'}`}>
+          <p className={`text-sm font-bold ${summary.effectiveDate?.includes('Not') ? 'text-[var(--apple-amber-text)] font-normal italic' : 'text-[var(--text-primary)]'}`}>
             {summary.effectiveDate}
           </p>
         </Card>
@@ -81,7 +86,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ summary }) => {
           <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-secondary)]">
             <Clock className="h-4 w-4 text-[var(--apple-teal-text)]" /> Duration
           </div>
-          <p className={`text-sm font-bold ${summary.duration.includes('Not found') ? 'text-[var(--apple-amber-text)] font-normal italic' : 'text-[var(--text-primary)]'}`}>
+          <p className={`text-sm font-bold ${summary.duration?.includes('Not') ? 'text-[var(--apple-amber-text)] font-normal italic' : 'text-[var(--text-primary)]'}`}>
             {summary.duration}
           </p>
         </Card>
@@ -94,7 +99,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ summary }) => {
             <ShieldCheck className="h-4 w-4 text-[var(--apple-blue-text)]" /> Key Obligations
           </h4>
           <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
-            {summary.keyObligations.map((ob, i) => (
+            {(summary.keyObligations || []).map((ob, i) => (
               <li key={i} className="flex items-start gap-2 bg-[var(--bg-secondary)] p-2.5 rounded-lg border border-[var(--border-subtle)]">
                 <span className="h-2 w-2 rounded-full bg-[var(--apple-blue)] mt-1.5 flex-shrink-0" />
                 <span className="text-[var(--text-primary)]">{ob}</span>
@@ -108,7 +113,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ summary }) => {
             <Clock className="h-4 w-4 text-[var(--apple-amber-text)]" /> Key Deadlines & Notice Terms
           </h4>
           <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
-            {summary.keyDeadlines.map((dl, i) => (
+            {deadlines.map((dl, i) => (
               <li key={i} className="flex items-start gap-2 bg-[var(--bg-secondary)] p-2.5 rounded-lg border border-[var(--border-subtle)]">
                 <span className="h-2 w-2 rounded-full bg-[var(--apple-amber)] mt-1.5 flex-shrink-0" />
                 <span className="text-[var(--text-primary)]">{dl}</span>
@@ -119,7 +124,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ summary }) => {
       </div>
 
       {/* Missing Information / Explicit Warning Box */}
-      {summary.missingInformation && summary.missingInformation.length > 0 && (
+      {missingInfo && missingInfo.length > 0 && (
         <Card className="space-y-3 bg-[var(--apple-amber-bg)] border-[var(--apple-amber-border)]">
           <h4 className="text-sm font-bold text-[var(--apple-amber-text)] flex items-center gap-2">
             <HelpCircle className="h-4 w-4 text-[var(--apple-amber-text)]" /> Missing / Unestablished Information
@@ -128,7 +133,7 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ summary }) => {
             The following standard legal parameters could not be established from the provided text:
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
-            {summary.missingInformation.map((item, i) => (
+            {missingInfo.map((item, i) => (
               <Badge key={i} variant="medium">
                 {item}
               </Badge>

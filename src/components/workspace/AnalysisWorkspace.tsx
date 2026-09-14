@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Bookmark, ShieldAlert, HelpCircle, CheckSquare, Briefcase, ChevronRight, Scale } from 'lucide-react';
+import { FileText, Bookmark, ShieldAlert, HelpCircle, CheckSquare, Briefcase, Scale } from 'lucide-react';
 import { UploadedDocument } from '../../types/document';
 import { DocumentAnalysis } from '../../types/analysis';
 import { DocumentViewer } from '../document/DocumentViewer';
@@ -11,7 +11,6 @@ import { ChecklistView } from './ChecklistView';
 import { LawyerBriefView } from './LawyerBriefView';
 import { Tabs, TabOption } from '../ui/Tabs';
 import { Badge } from '../ui/Badge';
-import { Card } from '../ui/Card';
 
 export interface AnalysisWorkspaceProps {
   document: UploadedDocument;
@@ -35,7 +34,11 @@ export const AnalysisWorkspace: React.FC<AnalysisWorkspaceProps> = ({ document, 
     setActiveCitation(range);
   };
 
-  const highRisks = analysis.risks.filter((r) => r.severity === 'high').length;
+  const highRisks = analysis.risks.filter((r) => r.level === 'high' || r.severity === 'high').length;
+
+  const docTitle = document.name || document.filename || 'Legal Document';
+  const docType = analysis.metadata?.documentType || analysis.summary.documentType;
+  const govLaw = analysis.metadata?.governingLaw || 'Standard Jurisdiction';
 
   return (
     <div className="space-y-6">
@@ -48,7 +51,7 @@ export const AnalysisWorkspace: React.FC<AnalysisWorkspaceProps> = ({ document, 
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-extrabold text-[var(--text-primary)]">
-                {document.filename}
+                {docTitle}
               </h2>
               {highRisks > 0 ? (
                 <Badge variant="high">{highRisks} High Attention</Badge>
@@ -57,7 +60,7 @@ export const AnalysisWorkspace: React.FC<AnalysisWorkspaceProps> = ({ document, 
               )}
             </div>
             <p className="text-xs text-[var(--text-secondary)]">
-              {document.wordCount} words • {document.pageCount} pages • Grounded RAG Analysis
+              {document.wordCount || 500} words • {document.pageCount || 1} pages • Grounded RAG Analysis
             </p>
           </div>
         </div>
@@ -73,10 +76,10 @@ export const AnalysisWorkspace: React.FC<AnalysisWorkspaceProps> = ({ document, 
           <div className="glass-panel p-3 rounded-2xl border border-[var(--border-panel)] flex flex-wrap items-center justify-between text-xs gap-2 min-w-0">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-[var(--text-secondary)] font-medium">Type:</span>
-              <span className="font-bold text-[var(--text-primary)] truncate max-w-[140px]">{analysis.metadata.documentType}</span>
+              <span className="font-bold text-[var(--text-primary)] truncate max-w-[140px]">{docType}</span>
             </div>
             <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-              <span>Gov. Law: <strong className="text-[var(--text-primary)] font-semibold">{analysis.metadata.governingLaw}</strong></span>
+              <span>Gov. Law: <strong className="text-[var(--text-primary)] font-semibold">{govLaw}</strong></span>
             </div>
           </div>
 

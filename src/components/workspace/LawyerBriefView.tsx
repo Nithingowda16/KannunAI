@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Briefcase, Printer, Plus, Trash2 } from 'lucide-react';
-import { LawyerBrief } from '../../types/lawyerBrief';
+import { LawyerBrief, PotentialConcern } from '../../types/lawyerBrief';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 
@@ -12,11 +12,16 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
   const [brief, setBrief] = useState<LawyerBrief>(initialBrief);
   const [newQuestion, setNewQuestion] = useState('');
 
+  const questionsList = brief.recommendedQuestions || brief.recommendedNextSteps || [];
+  const overviewText = brief.executiveSummary || brief.overview || 'Legal document analysis summary.';
+  const datesList = brief.importantDates || [];
+  const concernsList: PotentialConcern[] = brief.potentialConcerns || (brief.criticalRiskFactors || []).map((f) => ({ title: f, description: f }));
+
   const handleAddQuestion = () => {
     if (!newQuestion.trim()) return;
     setBrief((prev) => ({
       ...prev,
-      recommendedQuestions: [...prev.recommendedQuestions, newQuestion.trim()]
+      recommendedQuestions: [...(prev.recommendedQuestions || prev.recommendedNextSteps || []), newQuestion.trim()]
     }));
     setNewQuestion('');
   };
@@ -24,7 +29,7 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
   const handleRemoveQuestion = (index: number) => {
     setBrief((prev) => ({
       ...prev,
-      recommendedQuestions: prev.recommendedQuestions.filter((_, i) => i !== index)
+      recommendedQuestions: (prev.recommendedQuestions || prev.recommendedNextSteps || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -61,9 +66,9 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
         <div className="border-b border-[var(--border-panel)] pb-6 space-y-2">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)]">
-              Legal Preparation Brief: {brief.documentTitle}
+              Legal Preparation Brief: {brief.documentTitle || 'Legal Document'}
             </h2>
-            <Badge variant="info">Generated {brief.generatedAt}</Badge>
+            <Badge variant="info">Generated {brief.generatedAt || new Date().toLocaleDateString()}</Badge>
           </div>
           <p className="text-xs text-[var(--text-secondary)]">
             Prepared by KannunAI Legal Document Intelligence Platform. Confidential Client Handoff Brief.
@@ -76,7 +81,7 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
             1. Document Executive Summary
           </h3>
           <p className="text-xs text-[var(--text-primary)] leading-relaxed bg-[var(--bg-secondary)] p-4 rounded-xl border border-[var(--border-panel)]">
-            {brief.overview}
+            {overviewText}
           </p>
         </div>
 
@@ -87,7 +92,7 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
               2. Key Obligations
             </h3>
             <ul className="space-y-1.5 text-xs text-[var(--text-primary)]">
-              {brief.keyObligations.map((ob, i) => (
+              {(brief.keyObligations || []).map((ob, i) => (
                 <li key={i} className="flex items-start gap-2 bg-[var(--bg-secondary)] p-2.5 rounded-lg border border-[var(--border-subtle)]">
                   <span className="text-[var(--apple-blue-text)] font-bold">•</span>
                   <span>{ob}</span>
@@ -101,7 +106,7 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
               3. Important Dates & Deadlines
             </h3>
             <ul className="space-y-1.5 text-xs text-[var(--text-primary)]">
-              {brief.importantDates.map((d, i) => (
+              {datesList.map((d, i) => (
                 <li key={i} className="flex items-start gap-2 bg-[var(--bg-secondary)] p-2.5 rounded-lg border border-[var(--border-subtle)]">
                   <span className="text-[var(--apple-amber-text)] font-bold">•</span>
                   <span>{d}</span>
@@ -114,10 +119,10 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
         {/* Potential Concerns */}
         <div className="space-y-3">
           <h3 className="text-sm font-bold text-[var(--apple-rose-text)] uppercase tracking-wider">
-            4. Flagged Provisions Deserving Professional Review ({brief.potentialConcerns.length})
+            4. Flagged Provisions Deserving Professional Review ({concernsList.length})
           </h3>
           <div className="space-y-2">
-            {brief.potentialConcerns.map((c, i) => (
+            {concernsList.map((c, i) => (
               <div key={i} className="bg-[var(--apple-rose-bg)] p-3 rounded-xl border border-[var(--apple-rose-border)] text-xs space-y-1">
                 <span className="font-bold text-[var(--apple-rose-text)]">{c.title} ({c.section || 'General Clause'})</span>
                 <p className="text-[var(--text-primary)] leading-relaxed">{c.description}</p>
@@ -135,7 +140,7 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
           </div>
 
           <div className="space-y-2">
-            {brief.recommendedQuestions.map((q, i) => (
+            {questionsList.map((q, i) => (
               <div key={i} className="flex items-center justify-between gap-3 bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-subtle)] text-xs">
                 <span className="text-[var(--text-primary)] font-medium">{i + 1}. {q}</span>
                 <button

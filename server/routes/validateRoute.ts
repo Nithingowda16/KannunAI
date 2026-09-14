@@ -16,10 +16,21 @@ export async function handleValidateRoute(
   try {
     const bytes = new Uint8Array(Buffer.from(payload.fileData.base64, 'base64'));
     const validation = validateFileBufferOnServer(bytes, payload.fileData.filename);
+    if (validation.isValid) {
+      return {
+        status: 200,
+        headers: securityHeaders,
+        data: {
+          isValid: true,
+          sanitizedFilename: validation.sanitizedFilename,
+          detectedType: validation.detectedType
+        }
+      };
+    }
     return {
-      status: validation.isValid ? 200 : 400,
+      status: 400,
       headers: securityHeaders,
-      data: validation
+      data: { error: validation.error || 'Invalid file uploaded.', code: 'FILE_VALIDATION_FAILED' }
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to decode binary file stream.';

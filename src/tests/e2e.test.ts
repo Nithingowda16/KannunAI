@@ -4,7 +4,7 @@ import { extractTextFromFile } from '../services/document/textExtractor';
 import { MockAIProvider } from '../services/ai/mockProvider';
 import { UploadedDocument } from '../types/document';
 
-describe('E2E Test Suite - User Document Processing Journey', () => {
+describe('E2E Integration Test Suite - User Document Processing Journey', () => {
   test('Full end-to-end document processing pipeline', async () => {
     const sampleContent = `
 EMPLOYMENT AGREEMENT
@@ -23,6 +23,7 @@ Effective Date: January 15, 2026.
     const mockDoc: UploadedDocument = {
       id: 'doc_e2e_1',
       name: validation.sanitizedFilename || 'employment_agreement.txt',
+      filename: validation.sanitizedFilename || 'employment_agreement.txt',
       sizeFormatted: validation.fileSizeFormatted || '1 KB',
       uploadedAt: new Date().toLocaleTimeString(),
       rawText: extraction.text,
@@ -77,6 +78,7 @@ Effective Date: January 15, 2026.
     const mockDoc: UploadedDocument = {
       id: 'doc_e2e_1',
       name: validation.sanitizedFilename || 'employment_agreement.txt',
+      filename: validation.sanitizedFilename || 'employment_agreement.txt',
       sizeFormatted: validation.fileSizeFormatted || '1 KB',
       uploadedAt: new Date().toLocaleTimeString(),
       rawText: extraction.text,
@@ -95,9 +97,10 @@ Effective Date: January 15, 2026.
     assert(analysis.checklist.length > 0, 'E2E Step 6: Pre-signing checklist generated');
     assert(analysis.lawyerBrief.keyObligations.length > 0, 'E2E Step 7: Lawyer Brief generated');
 
-  } catch (err: any) {
+  } catch (error: unknown) {
     failed++;
-    logs.push(`[FAIL] E2E Execution Error: ${err?.message || err}`);
+    const message = error instanceof Error ? error.message : 'E2E Execution Error';
+    logs.push(`[FAIL] E2E Execution Error: ${message}`);
   }
 
   return { passed, failed, logs };

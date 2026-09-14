@@ -1,6 +1,4 @@
-import { DocumentAnalysis, QuestionAnswerResponse } from '../../src/types/analysis';
-import { UploadedDocument } from '../../src/types/document';
-import { ComparisonResult } from '../../src/types/comparison';
+import type { UploadedDocument } from '../../src/types/document';
 
 export const API_ACTIONS = {
   HEALTH: 'health',
@@ -24,6 +22,7 @@ export interface ValidationResponse {
   isValid: boolean;
   error?: string;
   sanitizedFilename?: string;
+  detectedType?: string;
   fileSizeFormatted?: string;
 }
 

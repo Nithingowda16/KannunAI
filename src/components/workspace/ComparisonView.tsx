@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { GitCompare } from 'lucide-react';
 import { UploadedDocument } from '../../types/document';
 import { ComparisonResult, DiffCategory } from '../../types/comparison';
-import { MockAIProvider } from '../../services/ai/mockProvider';
+import { GeminiAIProvider } from '../../services/ai/geminiProvider';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -20,11 +20,12 @@ export const ComparisonView: React.FC<ComparisonViewProps> = () => {
   const handleRunComparison = async (docA: UploadedDocument, docB: UploadedDocument) => {
     setIsComparing(true);
     try {
-      const provider = new MockAIProvider();
+      const provider = new GeminiAIProvider();
       const result = await provider.compareDocuments(docA, docB);
       setComparisonResult(result);
-    } catch (err) {
-      console.error('Comparison error', err);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Comparison failed.';
+      console.error('Comparison error:', message);
     } finally {
       setIsComparing(false);
     }

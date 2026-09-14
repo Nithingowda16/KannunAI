@@ -21,18 +21,21 @@ export type ClauseCategory =
 
 export interface ClauseItem {
   id: string;
-  category: ClauseCategory;
-  title: string;
-  originalText: string;
-  plainLanguage: string;
-  whyItMatters: string;
-  potentialConcern: string;
-  sourceLocation: {
+  category: string;
+  title?: string;
+  originalText?: string;
+  originalTextSnippet?: string;
+  plainLanguage?: string;
+  plainLanguageExplanation?: string;
+  whyItMatters?: string;
+  potentialConcern?: string;
+  sourceLocation?: {
     section?: string;
     pageNumber: number;
-    startChar: number;
-    endChar: number;
+    startChar?: number;
+    endChar?: number;
   };
-  confidence: 'High' | 'Medium' | 'Low';
-  status: 'Detected' | 'Requires Review' | 'Standard';
+  confidence?: 'High' | 'Medium' | 'Low';
+  confidenceScore?: number;
+  status?: 'Detected' | 'Requires Review' | 'Standard';
 }

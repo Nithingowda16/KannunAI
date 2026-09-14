@@ -3,30 +3,29 @@ import { generateSecureDocumentId } from '../security/fileValidator';
 import { createDocumentChunks } from './chunker';
 
 export interface ExtractionResult {
+  text: string;
   rawText: string;
   pageCount: number;
   wordCount: number;
+  chunks: any[];
   extractedSections: { title: string; text: string; pageNumber: number }[];
 }
 
 export async function extractTextFromLegalFile(file: File): Promise<UploadedDocument> {
-  const filename = file.name;
+  const name = file.name;
   const mimeType = file.type || 'text/plain';
   let rawText = '';
   let pageCount = 1;
 
-  if (filename.endsWith('.txt') || mimeType === 'text/plain') {
+  if (name.endsWith('.txt') || mimeType === 'text/plain') {
     rawText = await file.text();
-    // Estimate page count for plain text (~500 words per page)
     const words = rawText.trim().split(/\s+/).length;
     pageCount = Math.max(1, Math.ceil(words / 450));
-  } else if (filename.endsWith('.pdf') || mimeType === 'application/pdf') {
-    // Basic text extraction for PDF text streams in browser
+  } else if (name.endsWith('.pdf') || mimeType === 'application/pdf') {
     const buffer = await file.arrayBuffer();
     const textDecoder = new TextDecoder('utf-8');
     const pdfContent = textDecoder.decode(buffer);
 
-    // Extract text streams between BT (Begin Text) and ET (End Text) or standard text tokens
     const textBlocks: string[] = [];
     const streamRegex = /\(([^)]+)\)\s*Tj|\[([^\]]+)\]\s*TJ/g;
     let match;
@@ -40,17 +39,13 @@ export async function extractTextFromLegalFile(file: File): Promise<UploadedDocu
     if (textBlocks.length > 5) {
       rawText = textBlocks.join(' ');
     } else {
-      // Fallback text cleanup if raw text string available
       rawText = pdfContent.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ');
     }
 
-    // Estimate pages based on page markers
     const pageMatches = pdfContent.match(/\/Type\s*\/Page/g);
     pageCount = pageMatches ? Math.max(1, pageMatches.length) : Math.max(1, Math.ceil(rawText.split(/\s+/).length / 450));
   } else {
-    // DOCX or fallback
     rawText = await file.text();
-    // Clean XML tags if raw docx XML text
     rawText = rawText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
     const words = rawText.trim().split(/\s+/).length;
     pageCount = Math.max(1, Math.ceil(words / 450));
@@ -63,15 +58,33 @@ export async function extractTextFromLegalFile(file: File): Promise<UploadedDocu
 
   return {
     id: docId,
-    filename,
+    name,
+    filename: name,
     fileSize: file.size,
+    sizeFormatted: `${Math.round(file.size / 1024)} KB`,
     mimeType,
-    uploadedAt: new Date(),
+    uploadedAt: new Date().toLocaleTimeString(),
     rawText: cleanText,
     pageCount,
     wordCount,
     chunks,
     hash: await calculateSimpleHash(cleanText)
+  };
+}
+
+export async function extractTextFromFile(file: File): Promise<ExtractionResult> {
+  const doc = await extractTextFromLegalFile(file);
+  return {
+    text: doc.rawText,
+    rawText: doc.rawText,
+    pageCount: doc.pageCount || 1,
+    wordCount: doc.wordCount || doc.rawText.split(/\s+/).length,
+    chunks: doc.chunks,
+    extractedSections: doc.chunks.map((c) => ({
+      title: c.sectionHeader || 'Section',
+      text: c.text,
+      pageNumber: c.pageNumber
+    }))
   };
 }
 

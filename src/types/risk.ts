@@ -1,17 +1,21 @@
-export type RiskSeverity = 'low' | 'medium' | 'high';
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+export type RiskSeverity = RiskLevel;
 
 export interface RiskItem {
   id: string;
   title: string;
-  severity: RiskSeverity;
+  level: RiskLevel;
+  severity?: RiskSeverity;
   category: string;
   explanation: string;
-  evidenceText: string;
-  sourceLocation: {
+  evidenceSnippet?: string;
+  evidenceText?: string;
+  suggestedQuestion?: string;
+  sourceLocation?: {
     section?: string;
     pageNumber: number;
   };
-  reasonForFlagging: string;
-  suggestedAction: string;
+  reasonForFlagging?: string;
+  suggestedAction?: string;
   clauseId?: string;
 }

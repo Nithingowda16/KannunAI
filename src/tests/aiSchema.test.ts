@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { validateDocumentAnalysisSchema } from '../../server/services/schemaValidator';
 
 describe('AI Schema & Malicious Payload Security Tests', () => {
-  test('Valid Gemini output parses correctly into DocumentAnalysis', () => {
+  test('Valid AI output parses correctly into DocumentAnalysis', () => {
     const validRaw = {
       summary: {
         documentType: 'Employment Agreement',
@@ -40,7 +40,7 @@ describe('AI Schema & Malicious Payload Security Tests', () => {
     expect(validated.summary.documentType).toBe('Employment Agreement');
     expect(validated.clauses.length).toBe(1);
     expect(validated.risks.length).toBe(1);
-    expect(validated.overallRiskScore).toBe(25); // 1 medium risk = 10 + 15 = 25
+    expect(validated.overallRiskScore).toBe(25);
   });
 
   test('Missing fields in raw AI output are safely normalized with defaults', () => {
@@ -54,12 +54,12 @@ describe('AI Schema & Malicious Payload Security Tests', () => {
     expect(validated.summary.documentType).toBe('Non-Disclosure Agreement');
     expect(validated.summary.partiesInvolved).toEqual([]);
     expect(validated.clauses).toEqual([]);
-    expect(validated.checklist.length).toBeGreaterThan(0); // Fallback checklist injected
+    expect(validated.checklist.length).toBeGreaterThan(0);
   });
 
   test('Invalid non-object AI payload throws an error', () => {
-    expect(() => validateDocumentAnalysisSchema(null)).toThrow('AI response payload is not an object');
-    expect(() => validateDocumentAnalysisSchema('string payload')).toThrow('AI response payload is not an object');
+    expect(() => validateDocumentAnalysisSchema(null)).toThrow('Analysis response payload is not an object.');
+    expect(() => validateDocumentAnalysisSchema('string payload')).toThrow('Analysis response payload is not an object.');
   });
 
   test('Out-of-bounds confidence scores are clamped between 0 and 1', () => {
