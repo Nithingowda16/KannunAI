@@ -1,6 +1,6 @@
 import { validateLegalDocumentFile, sanitizeFilename } from '../services/security/fileValidator';
 import { createDocumentChunks } from '../services/document/chunker';
-import { InMemoryVectorStore } from '../services/document/vectorStore';
+import { InMemoryVectorStore, tokenize } from '../services/document/vectorStore';
 
 export function runUnitTests(): { passed: number; failed: number; logs: string[] } {
   const logs: string[] = [];
@@ -39,6 +39,14 @@ export function runUnitTests(): { passed: number; failed: number; logs: string[]
   const vectorStore = new InMemoryVectorStore(chunks);
   const results = vectorStore.search('definitions', 1);
   assert(results.length > 0, 'Vector store retrieves top matching chunk');
+
+  // Test 5: Unicode & Kannada Multilingual Tokenization
+  const kannadaLegalText = 'ಒಪ್ಪಂದದ ನಿಯಮಗಳು (Agreement Terms): Termination notice 30 days.';
+  const kannadaTokens = tokenize(kannadaLegalText);
+  assert(
+    kannadaTokens.includes('ಒಪ್ಪಂದದ') && kannadaTokens.includes('termination'),
+    'Unicode tokenizer preserves Kannada script (\\u0C80-\\u0CFF) and English terms'
+  );
 
   return { passed, failed, logs };
 }

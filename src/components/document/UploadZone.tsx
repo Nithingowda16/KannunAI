@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, RefreshCw, ShieldCheck, FileText, ArrowRight } from 'lucide-react';
+import { Upload, RefreshCw, ShieldCheck, FileText, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Progress } from '../ui/Progress';
 import { Alert } from '../ui/Alert';
@@ -31,7 +31,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onDocumentProcessed, onS
 
     setIsProcessing(true);
     setProgress(15);
-    setStatusMessage('Validating binary file header & MIME type...');
+    setStatusMessage('Validating binary file header & MIME integrity...');
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -41,7 +41,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onDocumentProcessed, onS
       const extractedDoc = await extractTextFromLegalFile(file);
 
       setProgress(85);
-      setStatusMessage('Building semantic vector index & chunking document...');
+      setStatusMessage('Building Unicode semantic vector index & chunking document...');
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       setProgress(100);
@@ -82,14 +82,18 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onDocumentProcessed, onS
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 py-4">
-      <div className="text-center space-y-3">
+      {/* Title & Subtitle */}
+      <div className="text-center space-y-2">
+        <span className="text-xs font-bold uppercase tracking-wider text-[var(--apple-blue-text)]">
+          SECURE LEGAL INGESTION PIPELINE
+        </span>
         <h2 className="text-3xl font-extrabold text-[var(--text-primary)]">Upload Your Legal Document</h2>
         <p className="text-[var(--text-secondary)] text-sm max-w-xl mx-auto leading-relaxed">
-          Supports PDF, DOCX, and TXT files up to 10MB. Files are sanitized and processed in-memory securely.
+          Sanitized and processed strictly in-memory. Supports PDF, DOCX, and TXT files up to 10MB.
         </p>
       </div>
 
-      {/* Drag & Drop Box */}
+      {/* Main Drag & Drop Zone */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -104,53 +108,68 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onDocumentProcessed, onS
             fileInputRef.current?.click();
           }
         }}
-        className={`glass-panel p-12 rounded-3xl border-2 border-dashed text-center transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 shadow-lg ${
+        className={`glass-panel p-10 sm:p-14 rounded-3xl border-2 border-dashed text-center transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--apple-blue)] shadow-lg relative group ${
           isDragging
-            ? 'border-indigo-500 bg-indigo-500/10 scale-[1.01]'
-            : 'border-[var(--border-panel)] hover:border-indigo-500/50 bg-[var(--bg-panel)]'
+            ? 'border-[var(--apple-blue)] bg-[var(--apple-blue-bg)] scale-[1.01]'
+            : 'border-[var(--border-panel)] hover:border-[var(--apple-blue-border)] bg-[var(--bg-panel)]'
         }`}
       >
+        {/* Strictly Hidden Native File Input */}
         <input
           ref={fileInputRef}
           type="file"
           accept=".pdf,.docx,.doc,.txt"
           onChange={handleFileInputChange}
+          style={{ display: 'none' }}
           className="hidden"
         />
 
-        <div className="flex flex-col items-center space-y-4">
-          <div className="p-4 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl border border-indigo-500/20 shadow-xs group-hover:scale-110 transition-transform">
-            <Upload className="h-8 w-8" />
+        <div className="flex flex-col items-center space-y-5">
+          {/* Animated Upload Icon Box */}
+          <div className="relative p-4 rounded-2xl bg-gradient-to-br from-[#0284c7] via-[#7c3aed] to-[#059669] text-white shadow-md group-hover:scale-110 transition-transform duration-300">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#0284c7] to-[#7c3aed] opacity-40 blur-md transition-opacity duration-300 group-hover:opacity-80" />
+            <Upload className="h-8 w-8 relative z-10 text-white" />
           </div>
 
-          <div className="space-y-1">
+          {/* Text Instructions */}
+          <div className="space-y-1.5 max-w-md">
             <p className="font-bold text-[var(--text-primary)] text-base">
-              Drag & Drop your contract here, or <span className="text-indigo-600 dark:text-indigo-400 underline font-semibold">browse files</span>
+              Drag & drop your contract here, or <span className="text-[var(--apple-blue-text)] underline font-semibold">browse files</span>
             </p>
-            <p className="text-xs text-[var(--text-secondary)]">PDF, DOCX, TXT (Max file size: 10MB)</p>
+            <p className="text-xs text-[var(--text-secondary)]">
+              PDF, DOCX, or TXT format (Maximum 10 MB per document)
+            </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] pt-2 bg-[var(--bg-secondary)] px-3 py-1.5 rounded-full border border-[var(--border-subtle)]">
-            <ShieldCheck className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-            <span>Strict binary magic byte validation & in-memory processing</span>
+          {/* Supported Format Badges */}
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">.PDF</span>
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">.DOCX</span>
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">.TXT</span>
+          </div>
+
+          {/* Security & Privacy Guarantee */}
+          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] pt-3 bg-[var(--bg-secondary)] px-4 py-2 rounded-full border border-[var(--border-subtle)]">
+            <Lock className="h-3.5 w-3.5 text-[var(--apple-emerald-text)] flex-shrink-0" />
+            <span>Binary Magic Byte Verification & In-Memory Ephemeral Storage</span>
           </div>
         </div>
       </div>
 
       {/* Processing State */}
       {isProcessing && (
-        <div className="glass-panel p-6 rounded-2xl space-y-3 border border-indigo-500/30 shadow-md" role="status" aria-live="polite">
+        <div className="glass-panel p-6 rounded-2xl space-y-3 border border-[var(--apple-blue-border)] shadow-md" role="status" aria-live="polite">
           <Progress value={progress} label={statusMessage} />
           <p className="text-xs text-[var(--text-secondary)] flex items-center gap-2">
-            <RefreshCw className="h-3.5 w-3.5 animate-spin text-indigo-500" />
-            Generating grounded RAG chunks and extracting legal citations...
+            <RefreshCw className="h-3.5 w-3.5 animate-spin text-[var(--apple-blue-text)]" />
+            Generating grounded Unicode vector chunks and extracting legal citations...
           </p>
         </div>
       )}
 
       {/* Error State with Retry */}
       {errorMessage && (
-        <Alert type="error" title="Document Processing Error">
+        <Alert type="error" title="Document Ingestion Error">
           <p className="mb-3 text-xs leading-relaxed">{errorMessage}</p>
           <Button
             size="sm"
@@ -166,26 +185,26 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onDocumentProcessed, onS
         </Alert>
       )}
 
-      {/* 1-Click Competition Demo Trigger */}
+      {/* 1-Click Sample Demo Contracts */}
       <div className="glass-panel p-6 rounded-2xl border border-[var(--border-panel)] flex flex-col sm:flex-row items-center justify-between gap-5 shadow-sm">
         <div className="flex items-center gap-3.5 text-left">
-          <div className="p-3 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20 flex-shrink-0">
+          <div className="p-3 bg-[var(--apple-blue-bg)] text-[var(--apple-blue-text)] rounded-xl border border-[var(--apple-blue-border)] flex-shrink-0">
             <FileText className="w-5 h-5" />
           </div>
           <div className="space-y-0.5">
-            <h4 className="font-bold text-[var(--text-primary)] text-sm">Don't have a document on hand?</h4>
-            <p className="text-xs text-[var(--text-secondary)]">Launch our pre-parsed sample contracts instantly in 1 click.</p>
+            <h4 className="font-bold text-[var(--text-primary)] text-sm">Don't have a document ready?</h4>
+            <p className="text-xs text-[var(--text-secondary)]">Test KannunAI instantly with pre-parsed sample legal contracts.</p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-2.5 w-full sm:w-auto">
           <Button
             size="sm"
             variant="secondary"
             onClick={() => onSelectSampleDemo('employment')}
             className="flex-1 sm:flex-initial"
           >
-            Employment Sample
+            Employment Agreement
           </Button>
           <Button
             size="sm"

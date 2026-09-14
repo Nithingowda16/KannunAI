@@ -444,6 +444,10 @@ input[type="text"], select {
   border-width: 0;
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* PRINT STYLES */
 @media print {
   body { background: #ffffff !important; color: #000000 !important; }

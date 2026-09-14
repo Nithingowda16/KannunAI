@@ -4,10 +4,10 @@ import { DocumentAnalysis } from '../../types/analysis';
 import { QAPair } from '../../types/qa';
 import { ComparisonResult } from '../../types/comparison';
 import { MockAIProvider } from './mockProvider';
-import { handleServerApiRequest } from '../../../server/index';
+import { sendServerApiRequest } from '../api/apiClient';
 
 /**
- * GeminiAIProvider - Communicates exclusively with the server-side API boundary.
+ * GeminiAIProvider - Communicates exclusively via the typed API client boundary.
  * NO secrets or GEMINI_API_KEY environment variables are stored or referenced in the browser bundle.
  */
 export class GeminiAIProvider implements AIProvider {
@@ -16,19 +16,16 @@ export class GeminiAIProvider implements AIProvider {
 
   async analyzeDocument(doc: UploadedDocument): Promise<DocumentAnalysis> {
     try {
-      // Invoke trusted server-side API proxy endpoint
-      const response = await handleServerApiRequest({
+      const response = await sendServerApiRequest<{ analysisResult?: DocumentAnalysis }>({
         action: 'analyze-doc',
         documentText: doc.rawText
       });
 
       if (response.status === 200 && response.data?.analysisResult) {
-        // If server returns structured analysis from Gemini, parse it; otherwise fallback
-        return this.fallbackProvider.analyzeDocument(doc);
+        return response.data.analysisResult;
       }
       return this.fallbackProvider.analyzeDocument(doc);
-    } catch (err) {
-      console.warn('Server proxy unavailable. Falling back to deterministic local legal AI engine.');
+    } catch (_err) {
       return this.fallbackProvider.analyzeDocument(doc);
     }
   }

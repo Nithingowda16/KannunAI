@@ -2,6 +2,7 @@ import { DocumentChunk } from '../../types/document';
 
 /**
  * In-Memory Vector & TF-IDF Retrieval Engine for Grounded Legal RAG.
+ * Unicode-aware: Preserves Kannada script (\u0C80-\u0CFF), Devanagari, and Indian legal multilingual terms.
  */
 
 export interface RetrievalResult {
@@ -29,8 +30,9 @@ export class InMemoryVectorStore {
 
       // Normalize frequency
       const weights = new Map<string, number>();
+      const totalTerms = Math.max(1, terms.length);
       for (const [term, count] of termFreq.entries()) {
-        weights.set(term, count / terms.length);
+        weights.set(term, count / totalTerms);
       }
       this.tfidfMap.set(chunk.id, weights);
     }
@@ -75,12 +77,19 @@ export class InMemoryVectorStore {
   }
 }
 
-function tokenize(text: string): string[] {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, '')
-    .split(/\s+/)
-    .filter((t) => t.length > 2 && !STOP_WORDS.has(t));
+/**
+ * Unicode-aware tokenizer supporting English, Kannada (\u0C80-\u0CFF), and mixed-language text.
+ */
+export function tokenize(text: string): string[] {
+  if (!text) return [];
+
+  // Unicode NFC normalization
+  const normalized = text.normalize('NFC').toLowerCase();
+
+  // Extract terms matching Latin letters, Numbers, or Kannada/Indic scripts (\u0C80-\u0CFF)
+  const tokens = normalized.match(/[\p{L}\p{N}\u0C80-\u0CFF]+/gu) || [];
+
+  return tokens.filter((t) => t.length > 1 && !STOP_WORDS.has(t));
 }
 
 const STOP_WORDS = new Set([
