@@ -20,10 +20,10 @@ test.describe('Real End-to-End Legal Document Journey', () => {
     await fileInput.setInputFiles(fixturePath);
 
     // 4. Verify workspace views after processing
-    await expect(page.getByRole('heading', { name: /legal document/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Plain-Language Document Summary/i)).toBeVisible({ timeout: 15000 });
 
     // 5. Check Plain-Language Summary tab
-    await expect(page.getByText(/plain-language summary/i)).toBeVisible();
+    await expect(page.getByText(/Plain-Language Document Summary/i)).toBeVisible();
 
     // 6. Switch to Risk Radar tab
     const riskTab = page.getByRole('tab', { name: /risk/i });
@@ -33,7 +33,7 @@ test.describe('Real End-to-End Legal Document Journey', () => {
     }
 
     // 7. Switch to Grounded Q&A tab
-    const qaTab = page.getByRole('tab', { name: /q&a|assistant/i });
+    const qaTab = page.getByRole('tab', { name: /ask ai|q&a/i });
     if (await qaTab.isVisible()) {
       await qaTab.click();
       await expect(page.getByPlaceholder(/ask a question/i)).toBeVisible();
