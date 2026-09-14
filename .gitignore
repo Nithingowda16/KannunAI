@@ -28,6 +28,9 @@ Thumbs.db
 *.swp
 *.swo
 
-# Vitest / Coverage
+# Vitest / Coverage / Playwright
 coverage/
 .vitest/
+playwright-report/
+test-results/
+
