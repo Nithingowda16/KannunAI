@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { DisclaimerBanner } from './components/layout/DisclaimerBanner';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { LandingPage } from './components/landing/LandingPage';
 import { UploadZone } from './components/document/UploadZone';
-import { AnalysisWorkspace } from './components/workspace/AnalysisWorkspace';
-import { ComparisonView } from './components/workspace/ComparisonView';
+import { Skeleton } from './components/ui/Skeleton';
 import { UploadedDocument } from './types/document';
 import { DocumentAnalysis } from './types/analysis';
 import { GeminiAIProvider } from './services/ai/geminiProvider';
 import { getSampleDocument } from './utils/sampleDocuments';
+
+const AnalysisWorkspace = lazy(() => import('./components/workspace/AnalysisWorkspace').then((m) => ({ default: m.AnalysisWorkspace })));
+const ComparisonView = lazy(() => import('./components/workspace/ComparisonView').then((m) => ({ default: m.ComparisonView })));
 
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<'landing' | 'upload' | 'workspace' | 'compare'>('landing');
@@ -86,16 +88,18 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {activeView === 'workspace' && currentDocument && currentAnalysis && (
-          <AnalysisWorkspace document={currentDocument} analysis={currentAnalysis} />
-        )}
+        <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+          {activeView === 'workspace' && currentDocument && currentAnalysis && (
+            <AnalysisWorkspace document={currentDocument} analysis={currentAnalysis} />
+          )}
 
-        {activeView === 'compare' && (
-          <ComparisonView
-            currentDocument={currentDocument}
-            onSelectSampleDemo={() => handleSelectSampleDemo('saas_v1')}
-          />
-        )}
+          {activeView === 'compare' && (
+            <ComparisonView
+              currentDocument={currentDocument}
+              onSelectSampleDemo={() => handleSelectSampleDemo('saas_v1')}
+            />
+          )}
+        </Suspense>
       </main>
 
       {/* Accessible Footer */}

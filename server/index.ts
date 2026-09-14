@@ -15,7 +15,6 @@ export interface RequestPayload {
     filename: string;
   };
   documentText?: string;
-  userApiKey?: string;
 }
 
 export async function handleServerApiRequest(payload: RequestPayload): Promise<{
@@ -79,7 +78,7 @@ export async function handleServerApiRequest(payload: RequestPayload): Promise<{
     }
 
     try {
-      const analysisResult = await processServerLegalAnalysis(payload.documentText, payload.userApiKey);
+      const analysisResult = await processServerLegalAnalysis(payload.documentText);
       return { status: 200, headers, data: { analysisResult } };
     } catch (err: any) {
       return {
