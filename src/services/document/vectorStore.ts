@@ -67,6 +67,14 @@ export class InMemoryVectorStore {
         }
       }
 
+      // Keyword match boost for exact terms appearing in chunk text
+      const chunkLower = chunk.text.toLowerCase();
+      for (const qTerm of queryTerms) {
+        if (qTerm.length > 2 && chunkLower.includes(qTerm)) {
+          score += 0.5;
+        }
+      }
+
       if (score > 0) {
         scores.push({ chunk, score });
       }

@@ -8,6 +8,7 @@ import { RiskItem } from '../../types/risk';
 import { ChecklistItem } from '../../types/checklist';
 import { LawyerBrief } from '../../types/lawyerBrief';
 import { InMemoryVectorStore } from '../document/vectorStore';
+import { createDocumentChunks } from '../document/chunker';
 
 export class MockAIProvider implements AIProvider {
   name = 'KannunAI Local Deterministic Legal Analysis Engine';
@@ -59,10 +60,14 @@ export class MockAIProvider implements AIProvider {
     question: string,
     _history: QAPair[]
   ): Promise<QAPair> {
-    const vectorStore = new InMemoryVectorStore(doc.chunks || []);
+    const chunks =
+      doc.chunks && doc.chunks.length > 0
+        ? doc.chunks
+        : (doc.rawText ? createDocumentChunks(doc.id || 'doc', doc.rawText, doc.pageCount || 1) : []);
+    const vectorStore = new InMemoryVectorStore(chunks);
     const searchResults = vectorStore.search(question, 3);
 
-    if (searchResults.length === 0 || searchResults[0].score < 0.1) {
+    if (searchResults.length === 0 || searchResults[0].score <= 0) {
       return {
         id: `qa_${Date.now()}`,
         question,
@@ -578,7 +583,7 @@ function generateGroundedAnswerText(question: string, chunkText: string, _fullTe
   const qLower = question.toLowerCase();
   const chunkLower = chunkText.toLowerCase();
 
-  if (qLower.includes('terminate') || qLower.includes('cancel')) {
+  if (qLower.includes('notice') || qLower.includes('terminate') || qLower.includes('cancel')) {
     if (chunkLower.includes('notice')) {
       return `Based on the provided document, termination requires advance written notice as specified in the termination section. (See Section/Page Citation).`;
     }
