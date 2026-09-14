@@ -18,12 +18,20 @@ export class GeminiAIProvider implements AIProvider {
     return this.engine.analyzeDocument(doc);
   }
 
-  async answerQuestion(doc: UploadedDocument, question: string, history: QAPair[]): Promise<QAPair> {
+  async answerQuestion(doc: UploadedDocument, question: string, history: QAPair[] = []): Promise<QAPair> {
     return this.engine.answerQuestion(doc, question, history);
   }
 
   async compareDocuments(docA: UploadedDocument, docB: UploadedDocument): Promise<ComparisonResult> {
     return this.engine.compareDocuments(docA, docB);
+  }
+
+  extractObligationsFromText(text: string) {
+    return this.engine.extractObligationsFromText(text);
+  }
+
+  detectInconsistencies(text: string) {
+    return this.engine.detectInconsistencies(text);
   }
 }
 

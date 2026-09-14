@@ -1,8 +1,10 @@
-export type ImportanceLevel = 'low' | 'medium' | 'high' | 'critical';
+export type ChecklistActionType = 'Review' | 'Clarify' | 'Negotiate' | 'Confirm' | 'Ask a Lawyer';
+export type ImportanceLevel = 'critical' | 'high' | 'medium' | 'low';
 
 export interface ChecklistItem {
   id: string;
   category: string;
+  actionType?: ChecklistActionType;
   itemText?: string;
   label?: string;
   description?: string;
@@ -12,4 +14,5 @@ export interface ChecklistItem {
   clauseId?: string;
   sourceSection?: string;
   pageNumber?: number;
+  linkedFinding?: string;
 }

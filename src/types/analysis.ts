@@ -4,6 +4,8 @@ import { QAPair, Citation, QuestionAnswerResponse } from './qa';
 import { ChecklistItem, ImportanceLevel } from './checklist';
 import { LawyerBrief } from './lawyerBrief';
 import { DocumentMetadata } from './document';
+import { LegalObligationItem } from './obligation';
+import { LegalInconsistencyItem } from './inconsistency';
 
 export interface PartyInfo {
   name: string;
@@ -35,10 +37,12 @@ export interface DocumentAnalysis {
   summary: DocumentSummary;
   clauses: ClauseItem[];
   risks: RiskItem[];
+  obligations?: LegalObligationItem[];
+  inconsistencies?: LegalInconsistencyItem[];
   qaHistory?: QAPair[];
   checklist: ChecklistItem[];
   lawyerBrief: LawyerBrief;
   metadata?: DocumentMetadata;
 }
 
-export type { RiskLevel, ImportanceLevel, Citation, QAPair, QuestionAnswerResponse };
+export type { RiskLevel, ImportanceLevel, Citation, QAPair, QuestionAnswerResponse, LegalObligationItem, LegalInconsistencyItem };

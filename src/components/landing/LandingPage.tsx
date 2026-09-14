@@ -103,6 +103,119 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
+      {/* Official PromptWars Alignment: How KannunAI Helps (6 Pillars) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--apple-blue-bg)] border border-[var(--apple-blue-border)] text-xs font-bold text-[var(--apple-blue-text)]">
+            <span>AI for Legal Assistance & Access</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)]">
+            How KannunAI Empowers Non-Lawyers
+          </h2>
+          <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-sm leading-relaxed">
+            Legal documents are often dense, confusing, and intimidating. KannunAI turns complex contracts into accessible, verified, and actionable insights across six core pillars.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Pillar 1: Understand */}
+          <Card hoverable className="space-y-4 p-6 rounded-3xl border-t-4 border-t-[var(--apple-blue-text)]">
+            <div className="flex items-center justify-between">
+              <div className="p-3 bg-[var(--apple-blue-bg)] text-[var(--apple-blue-text)] rounded-2xl border border-[var(--apple-blue-border)]">
+                <FileText className="h-6 w-6" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--apple-blue-text)] bg-[var(--apple-blue-bg)] px-2.5 py-1 rounded-lg">
+                Pillar 1
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">Understand Plainly</h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Translates complex legalese into clear, everyday language. Highlights governing jurisdiction, key parties, term durations, and warns when essential terms are absent.
+            </p>
+          </Card>
+
+          {/* Pillar 2: Identify Risks */}
+          <Card hoverable className="space-y-4 p-6 rounded-3xl border-t-4 border-t-[var(--apple-rose-text)]">
+            <div className="flex items-center justify-between">
+              <div className="p-3 bg-[var(--apple-rose-bg)] text-[var(--apple-rose-text)] rounded-2xl border border-[var(--apple-rose-border)]">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--apple-rose-text)] bg-[var(--apple-rose-bg)] px-2.5 py-1 rounded-lg">
+                Pillar 2
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">Identify Critical Risks</h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Breaks down flagged clauses into 4 actionable parts: what the contract says, why it matters in practice, what to consider, and exact source text.
+            </p>
+          </Card>
+
+          {/* Pillar 3: Map Obligations */}
+          <Card hoverable className="space-y-4 p-6 rounded-3xl border-t-4 border-t-[var(--apple-teal-text)]">
+            <div className="flex items-center justify-between">
+              <div className="p-3 bg-[var(--apple-emerald-bg)] text-[var(--apple-emerald-text)] rounded-2xl border border-[var(--apple-emerald-border)]">
+                <CheckSquare className="h-6 w-6" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--apple-emerald-text)] bg-[var(--apple-emerald-bg)] px-2.5 py-1 rounded-lg">
+                Pillar 3
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">Map Legal Obligations</h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Explicitly breaks commitments down into Who owes What, to Whom, by When, and the Consequences of non-performance, with one-click citation jumps.
+            </p>
+          </Card>
+
+          {/* Pillar 4: Reveal Inconsistencies */}
+          <Card hoverable className="space-y-4 p-6 rounded-3xl border-t-4 border-t-[var(--apple-amber-text)]">
+            <div className="flex items-center justify-between">
+              <div className="p-3 bg-[var(--apple-amber-bg)] text-[var(--apple-amber-text)] rounded-2xl border border-[var(--apple-amber-border)]">
+                <GitCompare className="h-6 w-6" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--apple-amber-text)] bg-[var(--apple-amber-bg)] px-2.5 py-1 rounded-lg">
+                Pillar 4
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">Detect Contradictions</h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Identifies conflicting contract terms—such as immediate vs 30-day notice termination, fixed term vs indefinite survival, or unilateral liability waivers.
+            </p>
+          </Card>
+
+          {/* Pillar 5: Ask Grounded Questions */}
+          <Card hoverable className="space-y-4 p-6 rounded-3xl border-t-4 border-t-[var(--apple-purple-text)]">
+            <div className="flex items-center justify-between">
+              <div className="p-3 bg-[var(--apple-purple-bg)] text-[var(--apple-purple-text)] rounded-2xl border border-[var(--apple-purple-border)]">
+                <HelpCircle className="h-6 w-6" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--apple-purple-text)] bg-[var(--apple-purple-bg)] px-2.5 py-1 rounded-lg">
+                Pillar 5
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">Grounded Q&A</h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Ask practical questions ("Can they terminate early?", "What happens to my IP?") and get direct answers backed by cited contractual excerpts.
+            </p>
+          </Card>
+
+          {/* Pillar 6: Act & Prepare */}
+          <Card hoverable className="space-y-4 p-6 rounded-3xl border-t-4 border-t-[var(--apple-blue-text)]">
+            <div className="flex items-center justify-between">
+              <div className="p-3 bg-[var(--apple-blue-bg)] text-[var(--apple-blue-text)] rounded-2xl border border-[var(--apple-blue-border)]">
+                <Briefcase className="h-6 w-6" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--apple-blue-text)] bg-[var(--apple-blue-bg)] px-2.5 py-1 rounded-lg">
+                Pillar 6
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">Prepare for Action</h3>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Categorized pre-signing checklists (Review, Clarify, Negotiate, Confirm, Ask a Lawyer) and an 8-part exportable dossier for your legal counsel.
+            </p>
+          </Card>
+        </div>
+      </section>
+
       {/* How It Works Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div className="text-center space-y-2">

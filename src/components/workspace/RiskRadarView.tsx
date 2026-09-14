@@ -90,10 +90,11 @@ export const RiskRadarView: React.FC<RiskRadarViewProps> = ({ risks, onSelectCit
           return (
             <Card
               key={risk.id}
-              className={`space-y-4 border-l-4 ${
+              className={`space-y-4 border-l-4 rounded-2xl ${
                 isHigh ? 'border-l-[var(--apple-rose)]' : isMed ? 'border-l-[var(--apple-amber)]' : 'border-l-[var(--apple-emerald)]'
               }`}
             >
+              {/* Risk Header */}
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3">
                 <div className="flex items-center gap-2">
                   <Badge
@@ -113,42 +114,64 @@ export const RiskRadarView: React.FC<RiskRadarViewProps> = ({ risks, onSelectCit
                   <h4 className="text-base font-bold text-[var(--text-primary)]">{risk.title}</h4>
                 </div>
 
+                <Badge variant="slate">{risk.category}</Badge>
+              </div>
+
+              {/* 1. WHAT THE DOCUMENT SAYS */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--apple-rose-text)] flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> 1. WHAT THE DOCUMENT SAYS (EVIDENCE):
+                </span>
+                <div className="bg-[var(--bg-secondary)] p-3.5 rounded-xl border border-[var(--border-panel)] text-xs font-mono text-[var(--text-primary)] italic">
+                  "{risk.whatDocumentSays || evidence}"
+                </div>
+              </div>
+
+              {/* 2. WHY IT MATTERS & 3. WHAT TO CONSIDER */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div className="bg-[var(--bg-secondary)] p-3.5 rounded-xl border border-[var(--border-subtle)] space-y-1">
+                  <span className="font-bold text-[var(--apple-amber-text)] text-[10px] uppercase tracking-wider block">
+                    2. WHY IT MATTERS:
+                  </span>
+                  <p className="text-[var(--text-primary)] leading-relaxed">
+                    {risk.whyItMatters || risk.reasonForFlagging || risk.explanation}
+                  </p>
+                </div>
+
+                <div className="bg-[var(--apple-blue-bg)] p-3.5 rounded-xl border border-[var(--apple-blue-border)] space-y-1">
+                  <span className="font-bold text-[var(--apple-blue-text)] text-[10px] uppercase tracking-wider flex items-center gap-1">
+                    <HelpCircle className="h-3.5 w-3.5 text-[var(--apple-blue-text)]" /> 3. WHAT TO CONSIDER / ACTION:
+                  </span>
+                  <p className="text-[var(--text-primary)] leading-relaxed">
+                    {risk.whatToConsider || action}
+                  </p>
+                </div>
+              </div>
+
+              {/* 4. SOURCE */}
+              <div className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-panel)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-[var(--text-tertiary)] uppercase font-bold tracking-wider">
+                    4. SOURCE CITATION:
+                  </span>
+                  <span className="font-semibold text-[var(--text-secondary)]">
+                    {risk.source?.section || risk.sourceLocation?.section || 'Contract Clause'} • Page {pageNum}
+                  </span>
+                </div>
+
                 <button
                   onClick={() =>
                     onSelectCitation({
-                      startChar: 0,
-                      endChar: 300,
+                      startChar: risk.source?.startChar || 0,
+                      endChar: risk.source?.endChar || 250,
                       pageNumber: pageNum
                     })
                   }
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--apple-blue-bg)] text-[var(--apple-blue-text)] border border-[var(--apple-blue-border)] hover:bg-[var(--bg-tertiary)] transition-colors font-medium text-xs"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--apple-blue-bg)] text-[var(--apple-blue-text)] border border-[var(--apple-blue-border)] hover:bg-[var(--bg-tertiary)] transition-colors font-bold text-xs flex-shrink-0"
                 >
-                  <span>Source Page {pageNum}</span>
+                  <span>Jump to Source on Page {pageNum}</span>
                   <ExternalLink className="h-3 w-3" />
                 </button>
-              </div>
-
-              <p className="text-xs text-[var(--text-primary)] leading-relaxed">{risk.explanation}</p>
-
-              <div className="bg-[var(--bg-secondary)] p-3 rounded-lg border border-[var(--border-panel)] text-xs font-mono text-[var(--text-primary)]">
-                <span className="text-[10px] text-[var(--text-secondary)] font-sans block mb-1 uppercase tracking-wider font-semibold">
-                  Evidence Text from Document:
-                </span>
-                "{evidence}"
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="bg-[var(--bg-secondary)] p-3 rounded-lg border border-[var(--border-subtle)]">
-                  <span className="font-bold text-[var(--apple-rose-text)] block mb-1">Reason for Flagging:</span>
-                  <p className="text-[var(--text-primary)] leading-relaxed">{risk.reasonForFlagging || risk.explanation}</p>
-                </div>
-
-                <div className="bg-[var(--apple-blue-bg)] p-3 rounded-lg border border-[var(--apple-blue-border)]">
-                  <span className="font-bold text-[var(--apple-blue-text)] flex items-center gap-1 mb-1">
-                    <HelpCircle className="h-3.5 w-3.5 text-[var(--apple-blue-text)]" /> Suggested Question / Action:
-                  </span>
-                  <p className="text-[var(--text-primary)] leading-relaxed">{action}</p>
-                </div>
               </div>
             </Card>
           );

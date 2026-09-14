@@ -7,6 +7,7 @@ export interface UploadedDocument {
   mimeType?: string;
   uploadedAt: string;
   rawText: string;
+  content?: string;
   pageCount?: number;
   wordCount?: number;
   chunks: DocumentChunk[];

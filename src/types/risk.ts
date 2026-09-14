@@ -14,6 +14,18 @@ export interface RiskItem {
   sourceLocation?: {
     section?: string;
     pageNumber: number;
+    startChar?: number;
+    endChar?: number;
+  };
+  // Explicit PromptWars 4-part actionable breakdown
+  whatDocumentSays?: string;
+  whyItMatters?: string;
+  whatToConsider?: string;
+  source?: {
+    section?: string;
+    pageNumber: number;
+    startChar?: number;
+    endChar?: number;
   };
   reasonForFlagging?: string;
   suggestedAction?: string;

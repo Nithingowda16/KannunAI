@@ -33,4 +33,5 @@ coverage/
 .vitest/
 playwright-report/
 test-results/
-
+# Local runner shim
+powershell.cmd

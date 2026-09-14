@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Briefcase, Printer, Plus, Trash2 } from 'lucide-react';
+import { Briefcase, Printer, Plus, Trash2, FolderCheck, HelpCircle, FileText, AlertTriangle, Calendar, ShieldCheck } from 'lucide-react';
 import { LawyerBrief, PotentialConcern } from '../../types/lawyerBrief';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -12,16 +12,19 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
   const [brief, setBrief] = useState<LawyerBrief>(initialBrief);
   const [newQuestion, setNewQuestion] = useState('');
 
-  const questionsList = brief.recommendedQuestions || brief.recommendedNextSteps || [];
+  const questionsList = brief.questionsToAsk || brief.recommendedQuestions || brief.recommendedNextSteps || [];
   const overviewText = brief.executiveSummary || brief.overview || 'Legal document analysis summary.';
   const datesList = brief.importantDates || [];
   const concernsList: PotentialConcern[] = brief.potentialConcerns || (brief.criticalRiskFactors || []).map((f) => ({ title: f, description: f }));
+  const infoToBringList = brief.informationToBring || [];
+  const unresolvedQuestionsList = brief.unresolvedQuestions || [];
+  const importantClausesList = brief.importantClauses || [];
 
   const handleAddQuestion = () => {
     if (!newQuestion.trim()) return;
     setBrief((prev) => ({
       ...prev,
-      recommendedQuestions: [...(prev.recommendedQuestions || prev.recommendedNextSteps || []), newQuestion.trim()]
+      questionsToAsk: [...(prev.questionsToAsk || prev.recommendedQuestions || []), newQuestion.trim()]
     }));
     setNewQuestion('');
   };
@@ -29,7 +32,7 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
   const handleRemoveQuestion = (index: number) => {
     setBrief((prev) => ({
       ...prev,
-      recommendedQuestions: (prev.recommendedQuestions || prev.recommendedNextSteps || []).filter((_, i) => i !== index)
+      questionsToAsk: (prev.questionsToAsk || prev.recommendedQuestions || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -44,10 +47,10 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
         <div>
           <h3 className="text-xl font-extrabold text-[var(--text-primary)] flex items-center gap-2">
             <Briefcase className="h-6 w-6 text-[var(--apple-emerald-text)]" />
-            Prepare for a Lawyer — Brief Generator
+            Prepare for a Lawyer — Consultation Brief Generator
           </h3>
-          <p className="text-xs text-[var(--text-secondary)]">
-            A concise legal brief summarizing obligations, dates, flagged concerns, and custom questions for your attorney.
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            A comprehensive, client-ready legal brief synthesizing critical obligations, ambiguous provisions, materials to gather, and targeted questions for legal counsel.
           </p>
         </div>
 
@@ -64,20 +67,21 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
       <div className="print-area space-y-6 glass-panel p-8 rounded-2xl border border-[var(--border-panel)] bg-[var(--bg-panel-solid)] text-[var(--text-primary)]">
         {/* Report Meta Header */}
         <div className="border-b border-[var(--border-panel)] pb-6 space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)]">
-              Legal Preparation Brief: {brief.documentTitle || 'Legal Document'}
+              Attorney Consultation Brief: {brief.documentTitle || 'Legal Document'}
             </h2>
             <Badge variant="info">Generated {brief.generatedAt || new Date().toLocaleDateString()}</Badge>
           </div>
           <p className="text-xs text-[var(--text-secondary)]">
-            Prepared by KannunAI Legal Document Intelligence Platform. Confidential Client Handoff Brief.
+            Prepared by KannunAI Document Intelligence. Structured client-to-counsel preparation dossier.
           </p>
         </div>
 
-        {/* Overview */}
+        {/* Section 1: Executive Overview */}
         <div className="space-y-2">
-          <h3 className="text-sm font-bold text-[var(--apple-blue-text)] uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-[var(--apple-blue-text)] uppercase tracking-wider flex items-center gap-1.5">
+            <FileText className="h-4 w-4" />
             1. Document Executive Summary
           </h3>
           <p className="text-xs text-[var(--text-primary)] leading-relaxed bg-[var(--bg-secondary)] p-4 rounded-xl border border-[var(--border-panel)]">
@@ -85,57 +89,122 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
           </p>
         </div>
 
-        {/* Key Obligations & Dates */}
+        {/* Section 2 & 3: Key Obligations & Important Dates */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <h3 className="text-sm font-bold text-[var(--apple-teal-text)] uppercase tracking-wider">
-              2. Key Obligations
+            <h3 className="text-xs font-bold text-[var(--apple-teal-text)] uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4" />
+              2. Core Commitments & Obligations
             </h3>
             <ul className="space-y-1.5 text-xs text-[var(--text-primary)]">
-              {(brief.keyObligations || []).map((ob, i) => (
-                <li key={i} className="flex items-start gap-2 bg-[var(--bg-secondary)] p-2.5 rounded-lg border border-[var(--border-subtle)]">
-                  <span className="text-[var(--apple-blue-text)] font-bold">•</span>
-                  <span>{ob}</span>
-                </li>
-              ))}
+              {(brief.keyObligations || []).length > 0 ? (
+                (brief.keyObligations || []).map((ob, i) => (
+                  <li key={i} className="flex items-start gap-2 bg-[var(--bg-secondary)] p-2.5 rounded-lg border border-[var(--border-subtle)]">
+                    <span className="text-[var(--apple-teal-text)] font-bold">•</span>
+                    <span>{ob}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="text-xs text-[var(--text-secondary)] p-2 bg-[var(--bg-secondary)] rounded-lg">No critical single-party obligations flagged.</li>
+              )}
             </ul>
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-bold text-[var(--apple-amber-text)] uppercase tracking-wider">
-              3. Important Dates & Deadlines
+            <h3 className="text-xs font-bold text-[var(--apple-amber-text)] uppercase tracking-wider flex items-center gap-1.5">
+              <Calendar className="h-4 w-4" />
+              3. Critical Dates, Deadlines & Notice Windows
             </h3>
             <ul className="space-y-1.5 text-xs text-[var(--text-primary)]">
-              {datesList.map((d, i) => (
-                <li key={i} className="flex items-start gap-2 bg-[var(--bg-secondary)] p-2.5 rounded-lg border border-[var(--border-subtle)]">
-                  <span className="text-[var(--apple-amber-text)] font-bold">•</span>
-                  <span>{d}</span>
-                </li>
-              ))}
+              {datesList.length > 0 ? (
+                datesList.map((d, i) => (
+                  <li key={i} className="flex items-start gap-2 bg-[var(--bg-secondary)] p-2.5 rounded-lg border border-[var(--border-subtle)]">
+                    <span className="text-[var(--apple-amber-text)] font-bold">•</span>
+                    <span>{d}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="text-xs text-[var(--text-secondary)] p-2 bg-[var(--bg-secondary)] rounded-lg">No specific timeline triggers found.</li>
+              )}
             </ul>
           </div>
         </div>
 
-        {/* Potential Concerns */}
+        {/* Section 4: Potential Concerns / Flagged Provisions */}
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-[var(--apple-rose-text)] uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-[var(--apple-rose-text)] uppercase tracking-wider flex items-center gap-1.5">
+            <AlertTriangle className="h-4 w-4" />
             4. Flagged Provisions Deserving Professional Review ({concernsList.length})
           </h3>
           <div className="space-y-2">
             {concernsList.map((c, i) => (
-              <div key={i} className="bg-[var(--apple-rose-bg)] p-3 rounded-xl border border-[var(--apple-rose-border)] text-xs space-y-1">
-                <span className="font-bold text-[var(--apple-rose-text)]">{c.title} ({c.section || 'General Clause'})</span>
+              <div key={i} className="bg-[var(--apple-rose-bg)] p-3.5 rounded-xl border border-[var(--apple-rose-border)] text-xs space-y-1">
+                <span className="font-bold text-[var(--apple-rose-text)]">{c.title} {c.section ? `(${c.section})` : ''}</span>
                 <p className="text-[var(--text-primary)] leading-relaxed">{c.description}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Recommended Questions to Ask Lawyer */}
-        <div className="space-y-3">
+        {/* Section 5: Unresolved Questions & Ambiguities */}
+        {unresolvedQuestionsList.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold text-[var(--apple-purple-text)] uppercase tracking-wider flex items-center gap-1.5">
+              <HelpCircle className="h-4 w-4" />
+              5. Unresolved Contractual Ambiguities & Silent Terms ({unresolvedQuestionsList.length})
+            </h3>
+            <div className="space-y-2">
+              {unresolvedQuestionsList.map((uq, i) => (
+                <div key={i} className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-subtle)] text-xs flex items-start gap-2">
+                  <span className="text-[var(--apple-purple-text)] font-bold shrink-0">?</span>
+                  <span className="text-[var(--text-primary)]">{uq}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Section 6: Information & Materials to Bring to Consultation */}
+        {infoToBringList.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold text-[var(--apple-blue-text)] uppercase tracking-wider flex items-center gap-1.5">
+              <FolderCheck className="h-4 w-4" />
+              6. Recommended Documents & Materials to Bring ({infoToBringList.length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {infoToBringList.map((item, i) => (
+                <div key={i} className="bg-[var(--bg-secondary)] p-3 rounded-xl border border-[var(--border-subtle)] text-xs flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[var(--apple-blue-text)] shrink-0" />
+                  <span className="text-[var(--text-primary)] font-medium">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Section 7: Critical Clauses Highlighted for Counsel */}
+        {importantClausesList.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
+              <FileText className="h-4 w-4" />
+              7. High-Priority Clauses for Direct Lawyer Scrutiny
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {importantClausesList.map((clause, i) => (
+                <Badge key={i} variant="slate">
+                  {clause}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Section 8: Recommended Questions to Ask Lawyer */}
+        <div className="space-y-3 border-t border-[var(--border-panel)] pt-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[var(--apple-emerald-text)] uppercase tracking-wider">
-              5. Questions to Ask Your Lawyer
+            <h3 className="text-xs font-bold text-[var(--apple-emerald-text)] uppercase tracking-wider flex items-center gap-1.5">
+              <Briefcase className="h-4 w-4" />
+              8. Targeted Questions to Ask Your Lawyer ({questionsList.length})
             </h3>
           </div>
 
@@ -145,8 +214,9 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
                 <span className="text-[var(--text-primary)] font-medium">{i + 1}. {q}</span>
                 <button
                   onClick={() => handleRemoveQuestion(i)}
-                  className="text-[var(--text-tertiary)] hover:text-[var(--apple-rose-text)] no-print"
+                  className="text-[var(--text-tertiary)] hover:text-[var(--apple-rose-text)] no-print p-1"
                   title="Remove question"
+                  aria-label={`Remove question ${i + 1}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -170,7 +240,7 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
               className="flex-1 bg-[var(--bg-secondary)] border border-[var(--border-panel)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-1 focus:ring-[var(--apple-blue)]"
             />
             <Button size="sm" variant="secondary" onClick={handleAddQuestion} leftIcon={<Plus className="h-4 w-4" />}>
-              Add
+              Add Question
             </Button>
           </div>
         </div>
@@ -178,3 +248,4 @@ export const LawyerBriefView: React.FC<LawyerBriefViewProps> = ({ brief: initial
     </div>
   );
 };
+

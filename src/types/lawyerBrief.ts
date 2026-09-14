@@ -13,9 +13,13 @@ export interface LawyerBrief {
   keyObligations: string[];
   importantDates?: string[];
   criticalRiskFactors: string[];
+  importantClauses?: string[];
   potentialConcerns?: PotentialConcern[];
   unclearAreas?: string[];
   recommendedNextSteps: string[];
   recommendedQuestions?: string[];
+  questionsToAsk?: string[];
+  informationToBring?: string[];
+  unresolvedQuestions?: string[];
   flaggedClausesCount?: number;
 }
