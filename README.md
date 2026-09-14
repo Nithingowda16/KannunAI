@@ -55,7 +55,7 @@ You can deploy **KannunAI** on [Render](https://render.com) in **under 2 minutes
 ## 🏗️ Tech Stack & Quality-Gate Architecture
 
 - **Frontend**: React 18, TypeScript (Strict Mode), Vite, Lucide Icons, Vanilla CSS Design System ([`src/index.css`](file:///c:/Users/nithi/AI%20for%20Legal%20And%20Access/src/index.css))
-- **AI / RAG Pipeline**: Grounded Vector Search (TF-IDF), Sliding-Window Semantic Chunker, Google Gemini API Provider (`gemini-2.5-flash`), Deterministic Local Mock AI Engine
+- **AI / RAG Pipeline**: Grounded Vector Search (TF-IDF), Sliding-Window Semantic Chunker, Google Gemini API Provider (`gemini-1.5-flash`), Deterministic Local Mock AI Engine
 - **Security Engineering**:
   - **Binary Magic Byte Verification**: Validates PDF (`%PDF-`), DOCX (`PK\x03\x04`), and text header bytes to block extension spoofing.
   - **Path Traversal & XSS Sanitization**: Strips dangerous file paths (`..`, `/`, `\`) and sanitizes active script tags.

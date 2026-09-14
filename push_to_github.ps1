@@ -1,8 +1,8 @@
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "Pushing KannunAI 100/100 Evaluation Fixes to GitHub..." -ForegroundColor Cyan
+Write-Host "Pushing Code Quality 100/100 Resolution to GitHub..." -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 git add .
-git commit -m "feat: complete master production hardening (100/100 evaluation criteria, vitest suites, decoupled API client, WCAG 2.2 AA accessibility, security prompt shield)"
+git commit -m "fix(quality): resolve all 14 Code Quality feedback items (strict API types, runtime schema validation, bounded retries, Q&A/Compare Gemini RAG server endpoints, no silent mock fallbacks)"
 git push origin main
 Write-Host "============================================================" -ForegroundColor Green
 Write-Host "Push Complete! Check https://github.com/Nithingowda16/KannunAI" -ForegroundColor Green
