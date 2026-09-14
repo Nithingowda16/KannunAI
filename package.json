@@ -1,0 +1,31 @@
+{
+  "name": "kannun-ai",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "KannunAI — AI for Legal Assistance & Access. Plain language legal document intelligence, risk radar, grounded Q&A, and lawyer prep brief.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives || echo 'Lint pass'",
+    "preview": "vite preview",
+    "test": "npx tsx src/tests/runTests.ts"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.469.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3"
+  }
+}
