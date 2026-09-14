@@ -50,9 +50,10 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onDocumentProcessed, onS
 
       setIsProcessing(false);
       onDocumentProcessed(extractedDoc);
-    } catch (err: any) {
+    } catch (error: unknown) {
       setIsProcessing(false);
-      setErrorMessage(err.message || 'Failed to extract text from the provided file. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to extract text from the provided file. Please try again.';
+      setErrorMessage(message);
     }
   };
 

@@ -2,7 +2,7 @@
 
 > **"Understand your legal documents before you sign."**
 
-**KannunAI** is a production-grade, competition-winning AI legal document intelligence platform built for **"AI for Legal Assistance & Access"**.
+**KannunAI** is a production-grade, architecture-hardened AI legal document intelligence platform built for **"AI for Legal Assistance & Access"**.
 
 It translates complex legal agreements into plain-language summaries, interactive risk radar assessments, structured clause analysis, grounded Q&A with exact source section & page citations, side-by-side contract comparison, interactive pre-signing checklists, and exportable lawyer preparation briefs.
 

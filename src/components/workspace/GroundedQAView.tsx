@@ -35,8 +35,9 @@ export const GroundedQAView: React.FC<GroundedQAViewProps> = ({ document, onSele
     try {
       const resultPair = await askGroundedLegalQuestion(document, queryText, qaList);
       setQaList((prev) => [resultPair, ...prev]);
-    } catch (err) {
-      console.error('Q&A error', err);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Q&A processing failed.';
+      console.error('Q&A error:', message);
     } finally {
       setIsLoading(false);
     }

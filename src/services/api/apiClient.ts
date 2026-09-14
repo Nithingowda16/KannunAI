@@ -1,32 +1,22 @@
+import { ApiRequestPayload, ApiResponse } from '../../types/api';
+
 /**
  * Typed Browser API Client for KannunAI
- * Provides a secure API boundary separating browser UI from server endpoints.
+ * Connects browser UI to server proxy endpoints using discriminated union responses.
  */
-
-export interface ApiRequestPayload {
-  action: 'health' | 'validate-file' | 'analyze-doc' | 'qa' | 'compare';
-  documentText?: string;
-  document?: any;
-  question?: string;
-  history?: any[];
-  documentA?: any;
-  documentB?: any;
-  fileData?: {
-    base64: string;
-    filename: string;
-  };
-}
-
-export interface ApiResponse<T = unknown> {
-  status: number;
-  data: T | null;
-  error?: string;
-}
-
-export async function sendServerApiRequest<T = unknown>(
+export async function sendServerApiRequest<T>(
   payload: ApiRequestPayload
 ): Promise<ApiResponse<T>> {
-  if (typeof fetch !== 'undefined') {
+  if (typeof fetch === 'undefined') {
+    return {
+      ok: false,
+      status: 503,
+      error: 'Environment does not support fetch API.',
+      code: 'FETCH_UNSUPPORTED'
+    };
+  }
+
+  try {
     const response = await fetch('/api/legal-ai', {
       method: 'POST',
       headers: {
@@ -37,20 +27,23 @@ export async function sendServerApiRequest<T = unknown>(
 
     if (response.ok) {
       const json = await response.json();
-      return { status: response.status, data: json as T };
+      return { ok: true, status: 200, data: json as T };
     }
 
     const errJson = await response.json().catch(() => ({ error: 'HTTP request failed' }));
     return {
-      status: response.status,
-      data: null,
-      error: errJson.error || `Server responded with status ${response.status}`
+      ok: false,
+      status: (response.status as 400 | 404 | 429 | 500 | 502 | 503) || 500,
+      error: errJson.error || `Server responded with HTTP status ${response.status}`,
+      code: errJson.code || 'HTTP_ERROR'
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Network communication failed';
+    return {
+      ok: false,
+      status: 503,
+      error: message,
+      code: 'NETWORK_ERROR'
     };
   }
-
-  return {
-    status: 503,
-    data: null,
-    error: 'Environment does not support fetch API.'
-  };
 }

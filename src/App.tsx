@@ -44,8 +44,9 @@ export const App: React.FC = () => {
       const analysis = await provider.analyzeDocument(doc);
       setCurrentAnalysis(analysis);
       setActiveView('workspace');
-    } catch (err) {
-      console.error('Error analyzing document:', err);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Document analysis failed.';
+      console.error('Error analyzing document:', message);
     }
   };
 
