@@ -1,24 +1,24 @@
-name: KannunAI Quality Gate CI
+name: KannunAI Master CI Quality Gate
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   quality-gate:
-    name: KannunAI Quality Gate Verification
+    name: Build, Typecheck, Lint, Test & Audit
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Source Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
 
       - name: Install Dependencies
@@ -27,11 +27,17 @@ jobs:
       - name: Strict TypeScript Compilation Check
         run: npm run typecheck
 
-      - name: Code Quality Linting Check
+      - name: ESLint Code Quality Gate
         run: npm run lint
 
-      - name: Execute Quality-Gate Test Suite
-        run: npm test
+      - name: Run Vitest Unit, Security, Accessibility & API Integration Tests
+        run: npm run test
 
-      - name: Build Production Distribution
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright Real Browser E2E & axe-core Accessibility Audits
+        run: npm run test:e2e:playwright
+
+      - name: Build Production Bundle
         run: npm run build

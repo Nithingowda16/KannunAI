@@ -1,0 +1,16 @@
+MASTER SAAS SERVICE AGREEMENT
+
+Effective Date: February 1, 2026
+
+1. SERVICES AND ACCESSIBILITY
+1.1 Cloud Service Access. Provider grants Customer a non-exclusive right to access the SaaS Platform.
+
+2. FEES AND AUTO-RENEWAL
+2.1 Subscription Fees. Customer shall pay $5,000 annually.
+2.2 Automatic Renewal. Subscription automatically renews for successive 1-year terms unless cancelled 60 days prior to renewal.
+
+3. LIMITATION OF LIABILITY
+3.1 Cap on Liability. Provider's total cumulative liability shall not exceed total fees paid by Customer in the preceding 12 months.
+
+4. GOVERNING LAW
+4.1 Applicable Law. Governed by the laws of New York State.

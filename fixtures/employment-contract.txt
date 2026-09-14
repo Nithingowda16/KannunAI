@@ -1,0 +1,21 @@
+EMPLOYMENT AGREEMENT
+
+This Employment Agreement ("Agreement") is made effective as of January 15, 2026, by and between Lexora Tech Corp ("Company") and Jane Doe ("Employee").
+
+SECTION 1. POSITION AND DUTIES
+1.1 Position. Employee shall serve as Senior Software Engineer.
+1.2 Duties. Employee shall perform all duties customary to the position.
+
+SECTION 2. COMPENSATION AND BENEFITS
+2.1 Base Salary. The Company shall pay Employee a base salary of $160,000 per annum, payable in accordance with regular payroll.
+2.2 Bonuses. Discretionary performance bonus up to 15% annually.
+
+SECTION 3. TERMINATION AND NOTICE PERIOD
+3.1 Termination by Notice. Either party may terminate this employment upon 30 days written notice.
+3.2 Severance. In the event of termination without cause, Employee shall receive 2 months base salary.
+
+SECTION 4. INTELLECTUAL PROPERTY & CONFIDENTIALITY
+4.1 Inventions. All work product, inventions, and patent rights created during employment belong exclusively to Company.
+
+SECTION 5. GOVERNING LAW AND JURISDICTION
+5.1 Governing Law. This Agreement shall be governed by the laws of the State of California.

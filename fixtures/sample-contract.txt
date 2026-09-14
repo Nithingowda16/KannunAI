@@ -1,0 +1,10 @@
+GENERAL CONSULTING AGREEMENT
+
+Effective Date: January 1, 2026.
+Client: Acme Corp.
+Consultant: Legal Tech Solutions LLC.
+
+1. SERVICES: Provide AI consulting and software development services.
+2. FEES: $150 per hour, payable net 30 days.
+3. TERMINATION: 15 days written notice by either party.
+4. JURISDICTION: State of Delaware.
