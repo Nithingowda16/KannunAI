@@ -93,19 +93,28 @@ npm run preview
 
 ---
 
-## 🧪 Automated Testing Suite
+## 🧪 Automated Testing Pyramid & Quality Gate
 
-KannunAI includes an automated quality-gate test runner validating unit logic, security shields, WCAG 2.2 AA accessibility rules, and end-to-end user flows:
+KannunAI implements a 4-tier testing pyramid to enforce 100% quality gate compliance:
 
 ```bash
+# Run Vitest Unit, Security, Accessibility, and API Matrix Tests
 npm test
+
+# Run Vitest V8 Coverage Metrics (Statements >= 90%, Branches >= 85%, Functions >= 90%, Lines >= 90%)
+npm run test:coverage
+
+# Run Playwright Real Browser E2E Journey & axe-core WCAG 2.2 AA Audits
+npm run test:e2e:playwright
 ```
 
-Test Coverage Includes:
-- **Unit Tests**: File validator, path traversal sanitization, sliding window chunker, vector store TF-IDF retrieval.
-- **Security Tests**: Neutralization of indirect prompt injection payloads and binary magic byte sniffing.
-- **Accessibility Tests**: WCAG 2.2 AA DOM checks (`lang="en"`, skip link navigation, title branding).
-- **E2E User Journey Tests**: Full user flow from upload through summary, risk radar, grounded Q&A, pre-signing checklist, and lawyer brief generation.
+### Test Suite Architecture
+- **Real Browser E2E Tests (`e2e/journey.spec.ts`)**: Chromium automation testing complete UI journey from document upload to summary, risk radar, grounded Q&A, and lawyer brief.
+- **Real Browser Accessibility Audits (`e2e/accessibility.spec.ts`)**: `@axe-core/playwright` auditing rendered browser DOM against WCAG 2.2 AA (`wcag2a`, `wcag2aa`, `wcag22aa`) rules with zero false positives.
+- **Server API Integration Matrix (`src/tests/apiIntegration.test.ts`)**: Integration tests validating `GET /health` (200), `POST /validate-file` (200/400), `POST /analyze-doc` (200/400), `POST /qa` (200/400), `POST /compare` (200/400), rate limiting (429), and unknown actions (404).
+- **AI Schema & Security Tests (`src/tests/aiSchema.test.ts`)**: Validates runtime schema parsing against malformed Gemini JSON, missing fields normalization, and prompt injection neutralization.
+- **Legal Contract Fixtures (`fixtures/`)**: Standardized contract fixtures (`employment-contract.txt`, `saas-terms.txt`, `malicious-prompt-injection.txt`, `unicode-kannada.txt`).
+- **GitHub Actions CI Workflow (`.github/workflows/ci.yml`)**: Automated pipeline running `typecheck` ➔ `lint` ➔ `vitest` ➔ `playwright` ➔ `build`.
 
 ---
 

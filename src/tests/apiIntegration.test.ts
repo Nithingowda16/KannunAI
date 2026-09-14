@@ -46,7 +46,7 @@ describe('API Integration Test Matrix - Server Proxy Endpoints', () => {
   });
 
   test('Unknown API action returns 404', async () => {
-    const response = await handleServerApiRequest({ action: 'invalid-action' as any });
+    const response = await handleServerApiRequest({ action: 'invalid-action' as unknown as any });
     expect(response.status).toBe(404);
     expect(response.data.code).toBe('ROUTE_NOT_FOUND');
   });

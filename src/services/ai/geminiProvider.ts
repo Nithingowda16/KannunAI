@@ -59,7 +59,7 @@ export class GeminiAIProvider implements AIProvider {
   }
 
   async compareDocuments(docA: UploadedDocument, docB: UploadedDocument): Promise<ComparisonResult> {
-    const response = await sendServerApiRequest<{ comparisonSummary?: string; differences?: any[] }>({
+    const response = await sendServerApiRequest<ComparisonResult>({
       action: 'compare',
       documentA: docA,
       documentB: docB
